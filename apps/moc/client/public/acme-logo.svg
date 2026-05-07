@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">
+  <rect width="240" height="80" fill="#0f172a"/>
+  <text x="20" y="52" fill="#f59e0b" font-family="Plus Jakarta Sans, system-ui, sans-serif"
+        font-weight="800" font-size="36" letter-spacing="2">ACME</text>
+  <text x="138" y="52" fill="#e2e8f0" font-family="Plus Jakarta Sans, system-ui, sans-serif"
+        font-weight="500" font-size="18">Industries</text>
+</svg>

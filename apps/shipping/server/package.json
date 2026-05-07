@@ -1,0 +1,43 @@
+{
+  "name": "@shipping/server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/server/src/index.js",
+    "migrate": "knex migrate:latest --knexfile src/db/knexfile.ts",
+    "migrate:rollback": "knex migrate:rollback --knexfile src/db/knexfile.ts",
+    "seed": "knex seed:run --knexfile src/db/knexfile.ts",
+    "sync:iqms": "tsx src/scripts/sync-iqms.ts",
+    "import:excel": "tsx scripts/import-excel.ts"
+  },
+  "dependencies": {
+    "@shipping/shared": "1.0.0",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.16",
+    "oracledb": "^6.7.1",
+    "pg": "^8.13.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.0.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/nodemailer": "^6.4.17",
+    "@types/oracledb": "^6.5.2",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

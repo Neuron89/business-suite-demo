@@ -1,0 +1,42 @@
+# dependencies
+node_modules/
+**/node_modules/
+.pnpm-store/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# build output
+.next/
+dist/
+build/
+*.tsbuildinfo
+
+# env / secrets (none should exist in demo, this is belt-and-suspenders)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# data / runtime
+*.db
+*.db-journal
+*.db.backup
+**/uploads/
+**/data/uploads/
+**/data/reports/
+exports/
+
+# logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# docker-compose runtime
+docker-compose.override.yml

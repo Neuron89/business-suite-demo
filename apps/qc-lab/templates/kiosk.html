@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Scan Barcode - QC Lab System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="kiosk-header">
+            <div class="scan-icon mb-3">
+                <i class="bi bi-upc-scan"></i>
+            </div>
+            <h1>Scan Barcode or Enter Lot</h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">Scan a barcode or type a lot number below</p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('kiosk') }}" id="scanForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Barcode / Lot Input -->
+                    <div class="mb-4">
+                        <input type="text" class="form-control scan-input" name="barcode"
+                               id="barcodeInput" placeholder="Scan or type here..."
+                               autofocus autocomplete="off" required>
+                    </div>
+
+                    <!-- Item Selection -->
+                    <div class="mb-4">
+                        <label class="form-label" style="font-size: 0.95rem;">Item</label>
+                        <select class="form-select form-select-lg" name="item_id" id="itemSelect" required>
+                            <option value="">-- Select Item --</option>
+                            {% for item in items %}
+                            <option value="{{ item.id }}">{{ item.item_number }} - {{ item.item_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Date Received -->
+                    <div class="mb-4">
+                        <label class="form-label" style="font-size: 0.95rem;">Date Received</label>
+                        <input type="date" class="form-control form-control-lg" name="date_received"
+                               value="{{ today }}">
+                    </div>
+
+                    <!-- Machine -->
+                    <div class="mb-4">
+                        <label class="form-label" style="font-size: 0.95rem;">Machine</label>
+                        <select class="form-select form-select-lg" name="machine" required>
+                            <option value="">-- Select Machine --</option>
+                            <option value="R1">R1</option>
+                            <option value="R2">R2</option>
+                            <option value="R3">R3</option>
+                            <option value="R4">R4</option>
+                            <option value="SH5">SH5</option>
+                            <option value="SH6">SH6</option>
+                        </select>
+                    </div>
+
+                    <!-- Duplicate Warning (hidden by default) -->
+                    <div id="duplicateWarning" class="duplicate-warning mb-4 d-none">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-3 me-3" style="color: var(--accent);"></i>
+                            <div>
+                                <h5 class="mb-0" style="color: var(--text-primary);">Duplicate Lot Detected!</h5>
+                                <p class="mb-0" style="color: var(--text-secondary);" id="duplicateMsg"></p>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a id="duplicateLink" href="#" class="btn btn-outline-secondary btn-sm me-2">
+                                <i class="bi bi-eye me-1"></i>View Existing Lot
+                            </a>
+                            <span class="small" style="color: var(--text-muted);">You can still submit — it will be flagged as a duplicate.</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-kiosk w-100">
+                        <i class="bi bi-plus-circle me-2"></i>Create Lot &amp; Enter Test Data
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const barcodeInput = document.getElementById('barcodeInput');
+    const duplicateWarning = document.getElementById('duplicateWarning');
+    const duplicateMsg = document.getElementById('duplicateMsg');
+    const duplicateLink = document.getElementById('duplicateLink');
+
+    let debounceTimer;
+
+    barcodeInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const value = this.value.trim();
+
+        if (value.length >= 3) {
+            debounceTimer = setTimeout(() => {
+                checkDuplicate(value);
+            }, 400);
+        } else {
+            duplicateWarning.classList.add('d-none');
+        }
+    });
+
+    barcodeInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const value = this.value.trim();
+            if (value && !document.getElementById('itemSelect').value) {
+                e.preventDefault();
+                checkDuplicate(value);
+            }
+        }
+    });
+
+    function checkDuplicate(value) {
+        fetch(`/api/check-duplicate?lot_number=${encodeURIComponent(value)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.is_duplicate) {
+                    duplicateWarning.classList.remove('d-none');
+                    duplicateMsg.textContent = `Lot "${value}" already exists (Item: ${data.item_number}, ` +
+                        `Status: ${data.status}, Created: ${data.created_at})`;
+                    duplicateLink.href = `/lots/${data.lot_id}`;
+                } else {
+                    duplicateWarning.classList.add('d-none');
+                }
+            })
+            .catch(() => {});
+    }
+
+    barcodeInput.focus();
+});
+</script>
+{% endblock %}

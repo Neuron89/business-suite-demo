@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Ticket #{{ ticket.id }} - QC Lab System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{{ url_for('manage_tickets') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="mb-0">Ticket #{{ ticket.id }}</h2>
+            <p class="mb-0" style="color: var(--text-secondary);">
+                Submitted by {{ ticket.submitter.full_name }}
+            </p>
+        </div>
+        <span class="badge ticket-badge-{{ ticket.status }} ms-auto" style="font-size: 0.85rem;">
+            {{ ticket.status | replace('_', ' ') | title }}
+        </span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left: Ticket Info -->
+    <div class="col-lg-7">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold">Ticket Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="lot-info-grid mb-4">
+                    <div class="lot-info-item">
+                        <div class="label">Submitter</div>
+                        <div class="value">{{ ticket.submitter.full_name }}</div>
+                    </div>
+                    <div class="lot-info-item">
+                        <div class="label">Page URL</div>
+                        <div class="value" style="font-size: 0.85rem; word-break: break-all;">
+                            {{ ticket.page_url or '—' }}
+                        </div>
+                    </div>
+                    <div class="lot-info-item">
+                        <div class="label">Created</div>
+                        <div class="value">{{ ticket.created_at.strftime('%m/%d/%Y %I:%M %p') }}</div>
+                    </div>
+                    <div class="lot-info-item">
+                        <div class="label">Last Updated</div>
+                        <div class="value">{{ ticket.updated_at.strftime('%m/%d/%Y %I:%M %p') }}</div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-2">Description</h6>
+                <div class="p-3 rounded" style="background: var(--bg-page); border: 1px solid var(--border-color); white-space: pre-wrap;">{{ ticket.description }}</div>
+
+                {% if ticket.screenshot_data %}
+                <h6 class="fw-bold mt-4 mb-2">Screenshot</h6>
+                <div class="rounded overflow-hidden" style="border: 1px solid var(--border-color);">
+                    <img src="{{ ticket.screenshot_data }}" alt="Screenshot" class="img-fluid" style="width: 100%;">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Update Form -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold">Update Ticket</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('ticket_detail', ticket_id=ticket.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="new" {{ 'selected' if ticket.status == 'new' }}>New</option>
+                            <option value="reviewed" {{ 'selected' if ticket.status == 'reviewed' }}>Reviewed</option>
+                            <option value="in_progress" {{ 'selected' if ticket.status == 'in_progress' }}>In Progress</option>
+                            <option value="completed" {{ 'selected' if ticket.status == 'completed' }}>Completed</option>
+                            <option value="dismissed" {{ 'selected' if ticket.status == 'dismissed' }}>Dismissed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Admin Notes</label>
+                        <textarea class="form-control" name="admin_notes" rows="5"
+                                  placeholder="Add notes about this ticket...">{{ ticket.admin_notes or '' }}</textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>Update Ticket
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

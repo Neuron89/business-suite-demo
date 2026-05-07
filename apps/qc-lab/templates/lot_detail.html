@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+{% block title %}Lot {{ lot.lot_number }} - QC Lab System{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <a href="{{ url_for('lots_list') }}" class="text-decoration-none mb-1 d-inline-block" style="color: var(--text-muted);">
+            <i class="bi bi-arrow-left me-1"></i>Back to All Lots
+        </a>
+        <h2>
+            Lot {{ lot.lot_number }}
+            {% if lot.is_duplicate %}
+            <span class="badge ms-2 fs-6" style="background: #f59e0b; color: #0f172a;">
+                <i class="bi bi-exclamation-triangle-fill"></i> Duplicate
+            </span>
+            {% endif %}
+            <span class="badge badge-{{ lot.status }} ms-2 fs-6">
+                {{ lot.status | replace('_', ' ') | title }}
+            </span>
+        </h2>
+    </div>
+    <div>
+        <form method="POST" action="{{ url_for('add_sample_set', lot_id=lot.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-success btn-kiosk">
+                <i class="bi bi-plus-circle me-2"></i>Add Sample Set {{ lot.next_sample_set_label }}
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Lot Info -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0 fw-bold">Lot Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="lot-info-grid">
+            <div class="lot-info-item">
+                <div class="label">Lot Number</div>
+                <div class="value">{{ lot.lot_number }}</div>
+            </div>
+            <div class="lot-info-item">
+                <div class="label">Item Number</div>
+                <div class="value">{{ lot.item.item_number }}</div>
+            </div>
+            <div class="lot-info-item">
+                <div class="label">Item Name</div>
+                <div class="value">{{ lot.item.item_name }}</div>
+            </div>
+            <div class="lot-info-item">
+                <div class="label">Date Received</div>
+                <div class="value">{{ lot.date_received.strftime('%m/%d/%Y') if lot.date_received else 'N/A' }}</div>
+            </div>
+            <div class="lot-info-item">
+                <div class="label">Barcode</div>
+                <div class="value">{{ lot.barcode or 'N/A' }}</div>
+            </div>
+            <div class="lot-info-item">
+                <div class="label">Machine</div>
+                <div class="value">{{ lot.machine or 'N/A' }}</div>
+            </div>
+            <div class="lot-info-item">
+                <div class="label">Supervisor Notified</div>
+                <div class="value">{{ lot.notified_supervisor or 'N/A' }}</div>
+            </div>
+            <div class="lot-info-item">
+                <div class="label">Created By</div>
+                <div class="value">{{ lot.creator.full_name }}</div>
+            </div>
+            <div class="lot-info-item">
+                <div class="label">Created At</div>
+                <div class="value">{{ lot.created_at.strftime('%m/%d/%Y %I:%M %p') }}</div>
+            </div>
+            <div class="lot-info-item">
+                <div class="label">Overall Result</div>
+                <div class="value">
+                    {% if lot.is_passing is none %}
+                        <span style="color: var(--text-muted);">No results yet</span>
+                    {% elif lot.is_passing %}
+                        <span class="text-success"><i class="bi bi-check-circle-fill"></i> PASS</span>
+                    {% else %}
+                        <span class="text-danger"><i class="bi bi-x-circle-fill"></i> FAIL</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% if lot.notes %}
+        <div class="mt-3 p-3 rounded" style="background: var(--bg-page);">
+            <strong>Notes:</strong> {{ lot.notes }}
+        </div>
+        {% endif %}
+
+        {% if lot.is_duplicate and lot.duplicate_of %}
+        <div class="mt-3 p-3 rounded" style="background: var(--accent-light); border: 1px solid var(--accent);">
+            <strong><i class="bi bi-exclamation-triangle me-1"></i>Duplicate of:</strong>
+            <a href="{{ url_for('lot_detail', lot_id=lot.duplicate_of.id) }}">
+                Lot {{ lot.duplicate_of.lot_number }}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sample Sets -->
+{% if sample_set_data %}
+{% for item in sample_set_data %}
+{% set ss = item.set %}
+{% set results = item.results %}
+{% set is_locked = not loop.last %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0 fw-bold d-inline">
+                {% if is_locked %}<i class="bi bi-lock-fill me-1" style="color: var(--text-muted);" title="Locked — a newer sample set exists"></i>{% endif %}
+                Sample Set {{ ss.label }}
+            </h5>
+            <small class="ms-2" style="color: var(--text-muted);">
+                {{ ss.created_at.strftime('%m/%d/%Y %I:%M %p') }} &mdash; {{ ss.creator.full_name }}
+            </small>
+            {% if ss.is_passing is none %}
+                <span class="badge bg-secondary ms-2">No Results</span>
+            {% elif ss.is_passing %}
+                <span class="badge bg-success ms-2">PASS</span>
+            {% else %}
+                <span class="badge bg-danger ms-2">FAIL</span>
+            {% endif %}
+        </div>
+        <div>
+            {% if is_locked or lot.status == 'completed' %}
+            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reauthModal" data-reauth-action="edit" data-sample-set-id="{{ ss.id }}">
+                <i class="bi bi-lock me-1"></i>Edit Set {{ ss.label }}
+            </button>
+            {% else %}
+            <a href="{{ url_for('test_entry', lot_id=lot.id, sample_set_id=ss.id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil me-1"></i>Edit Set {{ ss.label }}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                        <th>Unit</th>
+                        <th>Min Spec</th>
+                        <th>Max Spec</th>
+                        <th>Result</th>
+                        <th>Entered By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td class="fw-semibold">{{ result.parameter_name }}</td>
+                        <td>{{ result.value or '' }}</td>
+                        <td style="color: var(--text-secondary);">{{ result.unit or '' }}</td>
+                        <td style="color: var(--text-secondary);">{{ result.min_spec if result.min_spec is not none else '' }}</td>
+                        <td style="color: var(--text-secondary);">{{ result.max_spec if result.max_spec is not none else '' }}</td>
+                        <td>
+                            {% if result.is_passing is none %}
+                                <span class="pass-indicator pending"></span> <span style="color: var(--text-muted);">N/A</span>
+                            {% elif result.is_passing %}
+                                <span class="pass-indicator pass"></span>
+                                <span class="text-success fw-semibold">PASS</span>
+                            {% else %}
+                                <span class="pass-indicator fail"></span>
+                                <span class="text-danger fw-semibold">FAIL</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--text-secondary);">{{ result.entered_by_user.full_name }}</td>
+                        <td style="color: var(--text-muted); font-size: 0.8rem;">{{ result.entered_at.strftime('%m/%d/%Y %I:%M %p') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4" style="color: var(--text-muted);">
+                            No test results recorded for this set.
+                            {% if not is_locked and lot.status != 'completed' %}
+                            <a href="{{ url_for('test_entry', lot_id=lot.id, sample_set_id=ss.id) }}">Enter test data</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card mb-4">
+    <div class="card-body text-center py-5" style="color: var(--text-muted);">
+        <i class="bi bi-clipboard-data" style="font-size: 2rem;"></i>
+        <p class="mt-2 mb-0">No sample sets yet. Click "Add Sample Set A" to get started.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Status Update -->
+{% if current_user.role in ['admin', 'operator', 'lab_owner'] %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0 fw-bold">Update Status</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('update_lot_status', lot_id=lot.id) }}" class="d-flex gap-2 align-items-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="flex-grow-1">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="pending" {% if lot.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="in_progress" {% if lot.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if lot.status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="flagged" {% if lot.status == 'flagged' %}selected{% endif %}>Flagged</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- Audit History -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0 fw-bold">Change History</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Date/Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_history %}
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 0.8rem;">{{ log.timestamp.strftime('%m/%d/%Y %I:%M:%S %p') }}</td>
+                        <td>{{ log.user.full_name }}</td>
+                        <td>
+                            <span class="audit-action
+                                {% if log.action == 'create' %}text-success
+                                {% elif log.action == 'update' %}text-primary
+                                {% elif log.action == 'delete' %}text-danger
+                                {% else %}text-secondary{% endif %}">
+                                {{ log.action }}
+                            </span>
+                        </td>
+                        <td class="small" style="color: var(--text-secondary);">{{ log.details or '' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-3" style="color: var(--text-muted);">No history recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if lot.status == 'completed' or (sample_set_data | length > 1) %}
+<!-- Re-authentication Modal for editing locked/completed sets -->
+<div class="modal fade" id="reauthModal" tabindex="-1" aria-labelledby="reauthModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--bg-card); border-color: var(--border-color);">
+            <div class="modal-header" style="border-color: var(--border-color);">
+                <h5 class="modal-title fw-bold" id="reauthModalLabel" style="color: var(--text-primary);">
+                    <i class="bi bi-shield-lock me-2" style="color: var(--accent);"></i>Authentication Required
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary);">Approval required to edit this sample set. Please verify with an authorized user.</p>
+                <div class="mb-3">
+                    <label class="form-label">User</label>
+                    <select class="form-select" id="reauthUser">
+                        <option value="">-- Select User --</option>
+                        {% for user in reauth_users %}
+                        <option value="{{ user.username }}">{{ user.full_name }} &mdash; {{ user.role | replace('_', ' ') | title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" id="reauthPassword" placeholder="Enter password" value="password">
+                </div>
+                <div id="reauthError" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-color);">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="reauthSubmit">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Verify & Continue
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% if lot.status == 'completed' or (sample_set_data | length > 1) %}
+{% block extra_scripts %}
+<script>
+var reauthAction = 'edit';
+var reauthSampleSetId = null;
+
+document.getElementById('reauthModal').addEventListener('show.bs.modal', function(event) {
+    var trigger = event.relatedTarget;
+    reauthAction = trigger.getAttribute('data-reauth-action') || 'edit';
+    reauthSampleSetId = trigger.getAttribute('data-sample-set-id') || null;
+});
+
+document.getElementById('reauthSubmit').addEventListener('click', async function() {
+    var username = document.getElementById('reauthUser').value;
+    var password = document.getElementById('reauthPassword').value;
+    var errorDiv = document.getElementById('reauthError');
+    errorDiv.classList.add('d-none');
+
+    if (!username) {
+        errorDiv.textContent = 'Please select a user.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    if (!password) {
+        errorDiv.textContent = 'Please enter your password.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verifying...';
+
+    try {
+        var csrfToken = '{{ csrf_token() }}';
+        var body = {
+            username: username,
+            password: password,
+            lot_id: {{ lot.id }},
+            action: reauthAction
+        };
+        if (reauthSampleSetId) {
+            body.sample_set_id = parseInt(reauthSampleSetId);
+        }
+        var resp = await fetch('/api/reauth-edit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(body)
+        });
+        var data = await resp.json();
+        if (data.success) {
+            if (reauthAction === 'add_set') {
+                // Submit the add-sample-set form via POST
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = data.redirect_url;
+                var csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                document.body.appendChild(form);
+                form.submit();
+            } else {
+                window.location.href = data.redirect_url;
+            }
+        } else {
+            errorDiv.textContent = data.error || 'Authentication failed.';
+            errorDiv.classList.remove('d-none');
+        }
+    } catch(e) {
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.classList.remove('d-none');
+    }
+
+    this.disabled = false;
+    this.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i>Verify & Continue';
+});
+
+document.getElementById('reauthPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('reauthSubmit').click();
+});
+</script>
+{% endblock %}
+{% endif %}

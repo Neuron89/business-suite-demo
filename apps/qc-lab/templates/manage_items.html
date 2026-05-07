@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Manage Items - QC Lab System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-box me-2" style="color: var(--accent);"></i>Manage Items</h2>
+    <p style="color: var(--text-secondary);">Configure items and their test parameters</p>
+</div>
+
+<div class="row g-4">
+    <!-- Add New Item -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold">
+                    {% if edit_item %}Edit Item{% else %}Add New Item{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('manage_items') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="{{ 'edit' if edit_item else 'add' }}">
+                    {% if edit_item %}
+                    <input type="hidden" name="item_id" value="{{ edit_item.id }}">
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Item Number</label>
+                        <input type="text" class="form-control" name="item_number"
+                               value="{{ edit_item.item_number if edit_item else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Item Name</label>
+                        <input type="text" class="form-control" name="item_name"
+                               value="{{ edit_item.item_name if edit_item else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="2">{{ edit_item.description if edit_item else '' }}</textarea>
+                    </div>
+
+                    <hr style="border-color: var(--border-color);">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="fw-bold mb-0">Test Parameters</h6>
+                        {% if templates %}
+                        <div class="d-flex gap-2 align-items-center">
+                            <select class="form-select form-select-sm" id="templateSelect" style="width: auto; min-width: 160px;">
+                                <option value="">Load Template...</option>
+                                {% for t in templates %}
+                                <option value="{{ t.id }}">{{ t.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="loadTemplateBtn">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div id="paramContainer">
+                        {% if edit_item %}
+                            {% for param in edit_item.test_parameters %}
+                            <div class="rounded p-2 mb-2 param-row" style="border: 1px solid var(--border-color);">
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <input type="text" class="form-control form-control-sm"
+                                               name="tp_name" placeholder="Name" value="{{ param.parameter_name }}" required>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="text" class="form-control form-control-sm"
+                                               name="tp_unit" placeholder="Unit" value="{{ param.unit or '' }}">
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" step="any" class="form-control form-control-sm"
+                                               name="tp_min" placeholder="Min" value="{{ param.min_value if param.min_value is not none else '' }}">
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" step="any" class="form-control form-control-sm"
+                                               name="tp_max" placeholder="Max" value="{{ param.max_value if param.max_value is not none else '' }}">
+                                    </div>
+                                    <div class="col-2">
+                                        <button type="button" class="btn btn-sm btn-outline-danger w-100"
+                                                onclick="this.closest('.param-row').remove();">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="addTestParam">
+                        <i class="bi bi-plus me-1"></i>Add Parameter
+                    </button>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>{{ 'Update Item' if edit_item else 'Add Item' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Item List -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold">Existing Items</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Item #</th>
+                                <th>Name</th>
+                                <th>Test Params</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td class="fw-semibold">{{ item.item_number }}</td>
+                                <td>{{ item.item_name }}</td>
+                                <td>
+                                    {% for p in item.test_parameters %}
+                                    <span class="badge me-1" style="background: var(--bg-page); color: var(--text-secondary); border: 1px solid var(--border-color);">
+                                        {{ p.parameter_name }}
+                                        {% if p.unit %}({{ p.unit }}){% endif %}
+                                    </span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('manage_items', edit=item.id) }}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4" style="color: var(--text-muted);">
+                                    No items configured yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function addParamRow(name, unit, min, max) {
+    const container = document.getElementById('paramContainer');
+    const html = `
+        <div class="rounded p-2 mb-2 param-row" style="border: 1px solid var(--border-color);">
+            <div class="row g-2">
+                <div class="col-4">
+                    <input type="text" class="form-control form-control-sm"
+                           name="tp_name" placeholder="Name" value="${name || ''}" required>
+                </div>
+                <div class="col-2">
+                    <input type="text" class="form-control form-control-sm"
+                           name="tp_unit" placeholder="Unit" value="${unit || ''}">
+                </div>
+                <div class="col-2">
+                    <input type="number" step="any" class="form-control form-control-sm"
+                           name="tp_min" placeholder="Min" value="${min != null ? min : ''}">
+                </div>
+                <div class="col-2">
+                    <input type="number" step="any" class="form-control form-control-sm"
+                           name="tp_max" placeholder="Max" value="${max != null ? max : ''}">
+                </div>
+                <div class="col-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger w-100"
+                            onclick="this.closest('.param-row').remove();">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+document.getElementById('addTestParam').addEventListener('click', function() {
+    addParamRow('', '', '', '');
+});
+
+var loadBtn = document.getElementById('loadTemplateBtn');
+if (loadBtn) {
+    loadBtn.addEventListener('click', async function() {
+        var sel = document.getElementById('templateSelect');
+        var templateId = sel.value;
+        if (!templateId) return;
+
+        try {
+            var resp = await fetch('/api/template/' + templateId);
+            var data = await resp.json();
+            if (data.parameters) {
+                // Clear existing params
+                document.getElementById('paramContainer').innerHTML = '';
+                data.parameters.forEach(function(p) {
+                    addParamRow(p.name, p.unit, p.min, p.max);
+                });
+            }
+        } catch(e) {
+            console.error('Failed to load template:', e);
+        }
+    });
+}
+</script>
+{% endblock %}

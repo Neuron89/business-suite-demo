@@ -1,0 +1,191 @@
+# =============================================================================
+# Acme Industries Business Suite — Demo
+#
+# `docker compose up -d --build` brings up the entire suite. No env vars needed.
+#
+# Browser visits:
+#   Portal              http://localhost:3070
+#   MOC                 http://localhost:3000
+#   IT Request          http://localhost:3020
+#   Shipping            http://localhost:3030
+#   QC Lab              http://localhost:5000
+#   IQMS Chat           http://localhost:5055
+#   Employee Directory  http://localhost:5065
+# =============================================================================
+
+services:
+
+  # ----------------------------------------------------------------- postgres
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ----------------------------------------------------------------- portal
+  portal:
+    build: ./apps/portal
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "4070"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: portal_db
+      DB_USER: demo
+      DB_PASSWORD: demo
+      JWT_SECRET: demo-jwt-secret
+      PORTAL_SSO_SECRET: demo-sso-shared-secret
+      DEMO_MODE: "true"
+      # Browser-facing URLs for SSO redirects
+      CLIENT_URL: http://localhost:3070
+      NEXT_PUBLIC_API_URL: http://localhost:4070
+      MOC_URL: http://localhost:3000
+      IT_REQUEST_URL: http://localhost:3020
+      SHIPPING_URL: http://localhost:3030
+      QC_LAB_URL: http://localhost:5000
+      IQMS_CHAT_URL: http://localhost:5055
+      EMPLOYEE_DB_URL: http://localhost:5065
+      # Server-side URLs for task aggregation
+      MOC_API_BASE: http://moc:4000
+      IT_REQUEST_API_BASE: http://it-request:4020
+      DIRECTORY_BASE_URL: http://employee-directory:5065
+    ports:
+      - "3070:3070"
+      - "4070:4070"
+
+  # ----------------------------------------------------------------- moc
+  moc:
+    build: ./apps/moc
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: moc_db
+      DB_USER: demo
+      DB_PASSWORD: demo
+      JWT_SECRET: demo-jwt-secret-moc
+      JWT_REFRESH_SECRET: demo-jwt-refresh-secret-moc
+      PORTAL_SSO_SECRET: demo-sso-shared-secret
+      INTEGRATION_API_KEY: demo-integration-key
+      CLIENT_URL: http://localhost:3000
+      ALLOW_PASSWORD_LOGIN: "true"
+    ports:
+      - "3000:3000"
+      - "4000:4000"
+
+  # ----------------------------------------------------------------- it-request
+  it-request:
+    build: ./apps/it-request
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "4020"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: it_request_db
+      DB_USER: demo
+      DB_PASSWORD: demo
+      JWT_SECRET: demo-jwt-secret-it
+      JWT_REFRESH_SECRET: demo-jwt-refresh-secret-it
+      PORTAL_SSO_SECRET: demo-sso-shared-secret
+      CLIENT_URL: http://localhost:3020
+      ALLOW_PASSWORD_LOGIN: "true"
+      ALLOW_TEST_LOGIN: "true"
+    ports:
+      - "3020:3020"
+      - "4020:4020"
+
+  # ----------------------------------------------------------------- shipping
+  shipping:
+    build: ./apps/shipping
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "4030"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: shipping_db
+      DB_USER: demo
+      DB_PASSWORD: demo
+      JWT_SECRET: demo-jwt-secret-shipping
+      JWT_REFRESH_SECRET: demo-jwt-refresh-secret-shipping
+      PORTAL_SSO_SECRET: demo-sso-shared-secret
+      CLIENT_URL: http://localhost:3030
+      DEMO_MODE: "true"
+      OSRM_BASE_URL: http://localhost:5050
+    ports:
+      - "3030:3030"
+      - "4030:4030"
+
+  # ----------------------------------------------------------------- qc-lab
+  qc-lab:
+    build: ./apps/qc-lab
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: demo-qc-lab-secret
+      DATABASE_URL: sqlite:////app/data/qc_lab.db
+      PORTAL_SSO_SECRET: demo-sso-shared-secret
+      DEMO_MODE: "true"
+    volumes:
+      - qcdata:/app/data
+    ports:
+      - "5000:5000"
+
+  # ----------------------------------------------------------------- iqms-chat
+  iqms-chat:
+    build: ./apps/iqms-chat
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: demo-iqms-chat-secret
+      PORTAL_SSO_SECRET: demo-sso-shared-secret
+      DEMO_MODE: "true"
+    ports:
+      - "5055:5055"
+
+  # ----------------------------------------------------------------- employee-directory
+  employee-directory:
+    build: ./apps/employee-directory
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: demo-edir-secret
+      DATABASE_URL: sqlite:////app/data/employee_assets.db
+      PORTAL_SSO_SECRET: demo-sso-shared-secret
+      DEMO_MODE: "true"
+      APP_ADMIN_USERS: "demo:demo"
+      SESSION_COOKIE_SECURE: "false"
+    volumes:
+      - edirdata:/app/data
+    ports:
+      - "5065:5065"
+
+volumes:
+  pgdata:
+  qcdata:
+  edirdata:

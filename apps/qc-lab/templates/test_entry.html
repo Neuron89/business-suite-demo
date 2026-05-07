@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% block title %}Enter Test Data - Lot {{ lot.lot_number }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{{ url_for('lot_detail', lot_id=lot.id) }}" class="text-decoration-none mb-1 d-inline-block" style="color: var(--text-muted);">
+        <i class="bi bi-arrow-left me-1"></i>Back to Lot {{ lot.lot_number }}
+    </a>
+    <h2><i class="bi bi-pencil-square me-2" style="color: var(--accent);"></i>Test Data Entry &mdash; Set {{ sample_set.label }}</h2>
+    <p style="color: var(--text-secondary);">
+        Lot <strong>{{ lot.lot_number }}</strong> &mdash;
+        Item <strong>{{ lot.item.item_number }} - {{ lot.item.item_name }}</strong>
+    </p>
+</div>
+
+<form method="POST" action="{{ url_for('test_entry', lot_id=lot.id, sample_set_id=sample_set.id) }}" id="testEntryForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="sample_set_id" value="{{ sample_set.id }}">
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0 fw-bold">Test Parameters</h5>
+        </div>
+        <div class="card-body">
+            {% if parameters %}
+            <!-- Pre-defined parameters from item setup -->
+            {% for param in parameters %}
+            <div class="test-param-row">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-3">
+                        <label class="fw-semibold mb-0" style="font-size: 0.9rem;">{{ param.parameter_name }}</label>
+                        {% if param.unit %}
+                        <small class="d-block" style="color: var(--text-muted);">({{ param.unit }})</small>
+                        {% endif %}
+                        <input type="hidden" name="param_name_{{ loop.index }}" value="{{ param.parameter_name }}">
+                        <input type="hidden" name="param_unit_{{ loop.index }}" value="{{ param.unit or '' }}">
+                        <input type="hidden" name="param_min_{{ loop.index }}" value="{{ param.min_value if param.min_value is not none else '' }}">
+                        <input type="hidden" name="param_max_{{ loop.index }}" value="{{ param.max_value if param.max_value is not none else '' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" class="form-control"
+                               name="param_value_{{ loop.index }}"
+                               placeholder="Enter value"
+                               value="{{ existing_results.get(param.parameter_name, '') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <small style="color: var(--text-muted);">
+                            Spec:
+                            {% if param.min_value is not none %}{{ param.min_value }}{% else %}-&infin;{% endif %}
+                            &mdash;
+                            {% if param.max_value is not none %}{{ param.max_value }}{% else %}&infin;{% endif %}
+                            {% if param.unit %} {{ param.unit }}{% endif %}
+                        </small>
+                    </div>
+                    <div class="col-md-3">
+                        <span class="pass-indicator pending" id="indicator_{{ loop.index }}"></span>
+                        <span class="small" style="color: var(--text-muted);" id="indicatorText_{{ loop.index }}">Enter value</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <input type="hidden" name="param_count" value="{{ parameters | length }}">
+            {% else %}
+            <!-- No predefined parameters — allow free-form entry -->
+            <p style="color: var(--text-muted);" class="mb-3">No predefined test parameters for this item. Add parameters manually:</p>
+            <div id="dynamicParams">
+                {% for result in existing_dynamic %}
+                <div class="test-param-row dynamic-row">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" name="dyn_name_{{ loop.index }}"
+                                   placeholder="Parameter name" value="{{ result.parameter_name }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control" name="dyn_value_{{ loop.index }}"
+                                   placeholder="Value" value="{{ result.value }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control" name="dyn_unit_{{ loop.index }}"
+                                   placeholder="Unit" value="{{ result.unit or '' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" step="any" class="form-control" name="dyn_min_{{ loop.index }}"
+                                   placeholder="Min spec" value="{{ result.min_spec if result.min_spec is not none else '' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" step="any" class="form-control" name="dyn_max_{{ loop.index }}"
+                                   placeholder="Max spec" value="{{ result.max_spec if result.max_spec is not none else '' }}">
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    onclick="this.closest('.dynamic-row').remove(); updateDynCount();">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="dyn_count" id="dynCount" value="{{ existing_dynamic | length }}">
+            <button type="button" class="btn btn-outline-primary mt-3" id="addParamBtn">
+                <i class="bi bi-plus-circle me-1"></i>Add Parameter
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Supervisor Notification -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0 fw-bold">Supervisor Notification</h5>
+        </div>
+        <div class="card-body">
+            <label class="form-label">Notify Supervisor</label>
+            <input type="text" class="form-control" name="notified_supervisor"
+                   id="supervisorInput" list="supervisorList"
+                   placeholder="Start typing supervisor name..."
+                   value="{{ lot.notified_supervisor or '' }}"
+                   autocomplete="off">
+            <datalist id="supervisorList">
+                {% for s in supervisors %}
+                <option value="{{ s.name }}">
+                {% endfor %}
+            </datalist>
+        </div>
+    </div>
+
+    <div class="d-flex gap-3">
+        <button type="submit" class="btn btn-primary btn-kiosk">
+            <i class="bi bi-save me-2"></i>Save Test Results
+        </button>
+        <a href="{{ url_for('lot_detail', lot_id=lot.id) }}" class="btn btn-outline-secondary btn-kiosk">
+            Cancel
+        </a>
+    </div>
+</form>
+
+<!-- Supervisor Warning Modal -->
+<div class="modal fade" id="supervisorWarningModal" tabindex="-1" aria-labelledby="supervisorWarningLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--bg-card); border-color: var(--border-color);">
+            <div class="modal-header" style="border-color: var(--border-color);">
+                <h5 class="modal-title fw-bold" id="supervisorWarningLabel" style="color: var(--text-primary);">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #f59e0b;"></i>Supervisor Not Notified
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary);">Sample set is not complete until supervisor is notified.</p>
+            </div>
+            <div class="modal-footer" style="border-color: var(--border-color);">
+                <button type="button" class="btn btn-outline-secondary" id="supervisorContinueBtn">
+                    <i class="bi bi-arrow-right me-1"></i>Continue Without Supervisor
+                </button>
+                <button type="button" class="btn btn-primary" id="supervisorAddBtn">
+                    <i class="bi bi-person-plus me-1"></i>Add Supervisor
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addBtn = document.getElementById('addParamBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            const container = document.getElementById('dynamicParams');
+            const count = container.querySelectorAll('.dynamic-row').length + 1;
+            const html = `
+                <div class="test-param-row dynamic-row">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" name="dyn_name_${count}"
+                                   placeholder="Parameter name">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control" name="dyn_value_${count}"
+                                   placeholder="Value">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" class="form-control" name="dyn_unit_${count}"
+                                   placeholder="Unit">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" step="any" class="form-control" name="dyn_min_${count}"
+                                   placeholder="Min spec">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" step="any" class="form-control" name="dyn_max_${count}"
+                                   placeholder="Max spec">
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    onclick="this.closest('.dynamic-row').remove(); updateDynCount();">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+            updateDynCount();
+        });
+    }
+
+    // Live pass/fail indicators for predefined params
+    document.querySelectorAll('[name^="param_value_"]').forEach(input => {
+        input.addEventListener('input', function() {
+            const idx = this.name.split('_').pop();
+            const minEl = document.querySelector(`[name="param_min_${idx}"]`);
+            const maxEl = document.querySelector(`[name="param_max_${idx}"]`);
+            const indicator = document.getElementById(`indicator_${idx}`);
+            const indicatorText = document.getElementById(`indicatorText_${idx}`);
+
+            const val = parseFloat(this.value);
+            const min = minEl ? parseFloat(minEl.value) : NaN;
+            const max = maxEl ? parseFloat(maxEl.value) : NaN;
+
+            if (isNaN(val)) {
+                indicator.className = 'pass-indicator pending';
+                indicatorText.textContent = 'Enter value';
+                indicatorText.style.color = 'var(--text-muted)';
+                indicatorText.style.fontWeight = 'normal';
+                return;
+            }
+
+            let passing = true;
+            if (!isNaN(min) && val < min) passing = false;
+            if (!isNaN(max) && val > max) passing = false;
+
+            if (!isNaN(min) || !isNaN(max)) {
+                indicator.className = `pass-indicator ${passing ? 'pass' : 'fail'}`;
+                indicatorText.textContent = passing ? 'PASS' : 'FAIL';
+                indicatorText.style.color = passing ? '#22c55e' : '#ef4444';
+                indicatorText.style.fontWeight = '600';
+            } else {
+                indicator.className = 'pass-indicator pending';
+                indicatorText.textContent = 'No spec';
+                indicatorText.style.color = 'var(--text-muted)';
+                indicatorText.style.fontWeight = 'normal';
+            }
+        });
+
+        input.dispatchEvent(new Event('input'));
+    });
+});
+
+function updateDynCount() {
+    const count = document.querySelectorAll('.dynamic-row').length;
+    document.getElementById('dynCount').value = count;
+}
+
+// Supervisor warning on submit
+(function() {
+    var form = document.getElementById('testEntryForm');
+    var skipWarning = false;
+
+    form.addEventListener('submit', function(e) {
+        if (skipWarning) return;
+
+        var supervisor = document.getElementById('supervisorInput').value.trim();
+        if (supervisor) return; // supervisor filled, submit normally
+
+        // Check if all parameter fields have values
+        var allFilled = true;
+        var hasFields = false;
+
+        // Predefined params
+        form.querySelectorAll('[name^="param_value_"]').forEach(function(input) {
+            hasFields = true;
+            if (!input.value.trim()) allFilled = false;
+        });
+
+        // Dynamic params
+        if (!hasFields) {
+            form.querySelectorAll('[name^="dyn_value_"]').forEach(function(input) {
+                hasFields = true;
+                if (!input.value.trim()) allFilled = false;
+            });
+        }
+
+        if (hasFields && allFilled) {
+            e.preventDefault();
+            var modal = new bootstrap.Modal(document.getElementById('supervisorWarningModal'));
+            modal.show();
+        }
+    });
+
+    document.getElementById('supervisorContinueBtn').addEventListener('click', function() {
+        skipWarning = true;
+        bootstrap.Modal.getInstance(document.getElementById('supervisorWarningModal')).hide();
+        form.submit();
+    });
+
+    document.getElementById('supervisorAddBtn').addEventListener('click', function() {
+        bootstrap.Modal.getInstance(document.getElementById('supervisorWarningModal')).hide();
+        var input = document.getElementById('supervisorInput');
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+})();
+</script>
+{% endblock %}

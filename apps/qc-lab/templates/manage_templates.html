@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Test Templates - QC Lab System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-clipboard2-data me-2" style="color: var(--accent);"></i>Test Templates</h2>
+    <p style="color: var(--text-secondary);">Create reusable test parameter templates</p>
+</div>
+
+<div class="row g-4">
+    <!-- Add/Edit Template -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold">
+                    {% if edit_template %}Edit Template{% else %}Add New Template{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('manage_templates') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="{{ 'edit' if edit_template else 'add' }}">
+                    {% if edit_template %}
+                    <input type="hidden" name="template_id" value="{{ edit_template.id }}">
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Template Name</label>
+                        <input type="text" class="form-control" name="name"
+                               value="{{ edit_template.name if edit_template else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="2">{{ edit_template.description if edit_template else '' }}</textarea>
+                    </div>
+
+                    <hr style="border-color: var(--border-color);">
+                    <h6 class="fw-bold mb-3">Parameters</h6>
+                    <div id="paramContainer">
+                        {% if edit_template %}
+                            {% for param in edit_template.parameters %}
+                            <div class="rounded p-2 mb-2 param-row" style="border: 1px solid var(--border-color);">
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <input type="text" class="form-control form-control-sm"
+                                               name="tp_name" placeholder="Name" value="{{ param.parameter_name }}" required>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="text" class="form-control form-control-sm"
+                                               name="tp_unit" placeholder="Unit" value="{{ param.unit or '' }}">
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" step="any" class="form-control form-control-sm"
+                                               name="tp_min" placeholder="Min" value="{{ param.min_value if param.min_value is not none else '' }}">
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" step="any" class="form-control form-control-sm"
+                                               name="tp_max" placeholder="Max" value="{{ param.max_value if param.max_value is not none else '' }}">
+                                    </div>
+                                    <div class="col-2">
+                                        <button type="button" class="btn btn-sm btn-outline-danger w-100"
+                                                onclick="this.closest('.param-row').remove();">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="addParam">
+                        <i class="bi bi-plus me-1"></i>Add Parameter
+                    </button>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>{{ 'Update Template' if edit_template else 'Add Template' }}
+                        </button>
+                        {% if edit_template %}
+                        <a href="{{ url_for('manage_templates') }}" class="btn btn-outline-secondary btn-sm">Cancel Edit</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template List -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold">Existing Templates</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Parameters</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in templates %}
+                            <tr>
+                                <td class="fw-semibold">{{ t.name }}</td>
+                                <td style="color: var(--text-secondary); font-size: 0.85rem;">
+                                    {{ t.description[:60] ~ '...' if t.description and t.description|length > 60 else t.description or '—' }}
+                                </td>
+                                <td>
+                                    {% for p in t.parameters %}
+                                    <span class="badge me-1" style="background: var(--bg-page); color: var(--text-secondary); border: 1px solid var(--border-color);">
+                                        {{ p.parameter_name }}
+                                        {% if p.unit %}({{ p.unit }}){% endif %}
+                                    </span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('manage_templates', edit=t.id) }}"
+                                       class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('manage_templates') }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="template_id" value="{{ t.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Delete this template?');">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4" style="color: var(--text-muted);">
+                                    No templates created yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('addParam').addEventListener('click', function() {
+    const container = document.getElementById('paramContainer');
+    const html = `
+        <div class="rounded p-2 mb-2 param-row" style="border: 1px solid var(--border-color);">
+            <div class="row g-2">
+                <div class="col-4">
+                    <input type="text" class="form-control form-control-sm"
+                           name="tp_name" placeholder="Name" required>
+                </div>
+                <div class="col-2">
+                    <input type="text" class="form-control form-control-sm"
+                           name="tp_unit" placeholder="Unit">
+                </div>
+                <div class="col-2">
+                    <input type="number" step="any" class="form-control form-control-sm"
+                           name="tp_min" placeholder="Min">
+                </div>
+                <div class="col-2">
+                    <input type="number" step="any" class="form-control form-control-sm"
+                           name="tp_max" placeholder="Max">
+                </div>
+                <div class="col-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger w-100"
+                            onclick="this.closest('.param-row').remove();">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+});
+</script>
+{% endblock %}

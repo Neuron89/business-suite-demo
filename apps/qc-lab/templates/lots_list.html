@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}All Lots - QC Lab System{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h2>All Lots</h2>
+    <div class="d-flex gap-2">
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export Excel
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" style="min-width: 280px;">
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('export_lots', type='full') }}">
+                        <i class="bi bi-download me-2"></i>Full Export
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('export_lots', type='failed') }}">
+                        <i class="bi bi-x-circle me-2 text-danger"></i>Failed Lots Only
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="px-3 py-2">
+                    <form id="dateRangeExportForm" method="GET" action="{{ url_for('export_lots') }}">
+                        <input type="hidden" name="type" value="date_range">
+                        <label class="form-label mb-1 fw-semibold" style="font-size: 0.85rem;">Date Range Export</label>
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="date" class="form-control form-control-sm" name="date_from" placeholder="From" required>
+                            <input type="date" class="form-control form-control-sm" name="date_to" placeholder="To" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            <i class="bi bi-download me-1"></i>Export Range
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+        <a href="{{ url_for('kiosk') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>New Lot
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('lots_list') }}" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" class="form-control" name="search"
+                       value="{{ request.args.get('search', '') }}"
+                       placeholder="Lot # or barcode...">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="">All</option>
+                    <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="in_progress" {% if request.args.get('status') == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="flagged" {% if request.args.get('status') == 'flagged' %}selected{% endif %}>Flagged</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Item</label>
+                <select class="form-select" name="item_id">
+                    <option value="">All Items</option>
+                    {% for item in items %}
+                    <option value="{{ item.id }}" {% if request.args.get('item_id') == item.id|string %}selected{% endif %}>
+                        {{ item.item_number }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="duplicates_only" id="dupOnly"
+                           {% if request.args.get('duplicates_only') %}checked{% endif %}>
+                    <label class="form-check-label" for="dupOnly">Dups</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Filter
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ url_for('lots_list') }}" class="btn btn-outline-secondary w-100">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lots Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Lot #</th>
+                        <th>Item</th>
+                        <th>Date Received</th>
+                        <th>Status</th>
+                        <th>Result</th>
+                        <th>Created By</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lot in lots %}
+                    <tr onclick="window.location='{{ url_for('lot_detail', lot_id=lot.id) }}'">
+                        <td class="fw-semibold">
+                            {{ lot.lot_number }}
+                            {% if lot.is_duplicate %}
+                            <span class="badge" style="background: #f59e0b; color: #0f172a;">
+                                <i class="bi bi-exclamation-triangle-fill"></i> DUP
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ lot.item.item_number }} - {{ lot.item.item_name }}</td>
+                        <td style="color: var(--text-secondary);">{{ lot.date_received.strftime('%m/%d/%Y') if lot.date_received else 'N/A' }}</td>
+                        <td>
+                            <span class="badge badge-{{ lot.status }}">
+                                {{ lot.status | replace('_', ' ') | title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% set passing = lot.is_passing %}
+                            {% if passing is none %}
+                                <span style="color: var(--text-muted);">--</span>
+                            {% elif passing %}
+                                <span class="text-success fw-semibold"><i class="bi bi-check-circle-fill"></i> PASS</span>
+                            {% else %}
+                                <span class="text-danger fw-semibold"><i class="bi bi-x-circle-fill"></i> FAIL</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--text-secondary);">{{ lot.creator.full_name }}</td>
+                        <td style="color: var(--text-muted); font-size: 0.8rem;">{{ lot.created_at.strftime('%m/%d/%Y') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4" style="color: var(--text-muted);">
+                            No lots found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ pagination.prev_num }}&{{ query_string }}">&laquo;</a>
+        </li>
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&{{ query_string }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ pagination.next_num }}&{{ query_string }}">&raquo;</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('dateRangeExportForm').addEventListener('click', function(e) {
+    e.stopPropagation();
+});
+</script>
+{% endblock %}

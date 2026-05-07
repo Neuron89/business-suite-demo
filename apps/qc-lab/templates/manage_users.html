@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Manage Users - QC Lab System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-people me-2" style="color: var(--accent);"></i>Manage Users</h2>
+</div>
+
+<div class="row g-4">
+    <!-- Add User -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold">Add New User</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('manage_users') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="add">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" name="full_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required minlength="4">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="role">
+                            <option value="operator">Operator</option>
+                            <option value="lab_owner">Lab Owner</option>
+                            <option value="viewer">Viewer</option>
+                            {% if current_user.is_admin %}
+                            <option value="admin">Admin</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="can_approve_edits" id="canApproveEdits">
+                            <label class="form-check-label" for="canApproveEdits">
+                                Can approve edits (re-auth for locked/completed sets)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-person-plus me-1"></i>Add User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User List -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold">Existing Users</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Role</th>
+                                <th>Can Approve</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td class="fw-semibold">{{ user.username }}</td>
+                                <td>{{ user.full_name }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if user.role == 'admin' %}bg-danger
+                                        {% elif user.role == 'lab_owner' %}bg-info
+                                        {% elif user.role == 'operator' %}bg-primary
+                                        {% else %}bg-secondary{% endif %}"
+                                        {% if user.role == 'operator' %}style="background: var(--accent) !important; color: var(--accent-text) !important;"{% endif %}>
+                                        {{ user.role | replace('_', ' ') | title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if user.can_approve_edits %}
+                                    <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.is_active_user %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.id != current_user.id %}
+                                    <form method="POST" action="{{ url_for('manage_users') }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="action" value="toggle_approve">
+                                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if user.can_approve_edits else 'info' }}"
+                                                title="{{ 'Revoke approval' if user.can_approve_edits else 'Grant approval' }}">
+                                            <i class="bi bi-{{ 'shield-x' if user.can_approve_edits else 'shield-check' }}"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('manage_users') }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="action" value="toggle">
+                                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-{{ 'danger' if user.is_active_user else 'success' }}"
+                                                title="{{ 'Deactivate' if user.is_active_user else 'Activate' }}">
+                                            <i class="bi bi-{{ 'x-circle' if user.is_active_user else 'check-circle' }}"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('manage_users') }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="action" value="reset_password">
+                                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                                        <input type="hidden" name="new_password" value="password">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                title="Reset password to 'password'"
+                                                onclick="return confirm('Reset password to default?');">
+                                            <i class="bi bi-key"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

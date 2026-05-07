@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Tickets - QC Lab System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-ticket-detailed me-2" style="color: var(--accent);"></i>Feedback Tickets</h2>
+    <p style="color: var(--text-secondary);">Review and manage user feedback and system requests</p>
+</div>
+
+<!-- Status filter badges -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('manage_tickets') }}"
+       class="btn btn-sm {{ 'btn-primary' if not current_status else 'btn-outline-secondary' }}">
+        All <span class="badge bg-dark bg-opacity-25 ms-1">{{ counts.all }}</span>
+    </a>
+    <a href="{{ url_for('manage_tickets', status='new') }}"
+       class="btn btn-sm {{ 'btn-primary' if current_status == 'new' else 'btn-outline-secondary' }}">
+        <i class="bi bi-circle-fill me-1 text-info" style="font-size: 0.5rem;"></i>New
+        <span class="badge bg-dark bg-opacity-25 ms-1">{{ counts.new }}</span>
+    </a>
+    <a href="{{ url_for('manage_tickets', status='reviewed') }}"
+       class="btn btn-sm {{ 'btn-primary' if current_status == 'reviewed' else 'btn-outline-secondary' }}">
+        <i class="bi bi-circle-fill me-1 text-primary" style="font-size: 0.5rem;"></i>Reviewed
+        <span class="badge bg-dark bg-opacity-25 ms-1">{{ counts.reviewed }}</span>
+    </a>
+    <a href="{{ url_for('manage_tickets', status='in_progress') }}"
+       class="btn btn-sm {{ 'btn-primary' if current_status == 'in_progress' else 'btn-outline-secondary' }}">
+        <i class="bi bi-circle-fill me-1 text-warning" style="font-size: 0.5rem;"></i>In Progress
+        <span class="badge bg-dark bg-opacity-25 ms-1">{{ counts.in_progress }}</span>
+    </a>
+    <a href="{{ url_for('manage_tickets', status='completed') }}"
+       class="btn btn-sm {{ 'btn-primary' if current_status == 'completed' else 'btn-outline-secondary' }}">
+        <i class="bi bi-circle-fill me-1 text-success" style="font-size: 0.5rem;"></i>Completed
+        <span class="badge bg-dark bg-opacity-25 ms-1">{{ counts.completed }}</span>
+    </a>
+    <a href="{{ url_for('manage_tickets', status='dismissed') }}"
+       class="btn btn-sm {{ 'btn-primary' if current_status == 'dismissed' else 'btn-outline-secondary' }}">
+        <i class="bi bi-circle-fill me-1 text-secondary" style="font-size: 0.5rem;"></i>Dismissed
+        <span class="badge bg-dark bg-opacity-25 ms-1">{{ counts.dismissed }}</span>
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Submitter</th>
+                        <th>Description</th>
+                        <th>Page</th>
+                        <th>Status</th>
+                        <th><i class="bi bi-camera"></i></th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr onclick="window.location='{{ url_for('ticket_detail', ticket_id=ticket.id) }}';" style="cursor:pointer;">
+                        <td class="fw-semibold">{{ ticket.id }}</td>
+                        <td>{{ ticket.submitter.full_name }}</td>
+                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ ticket.description[:80] }}{% if ticket.description|length > 80 %}...{% endif %}
+                        </td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ ticket.page_url or '—' }}
+                        </td>
+                        <td>
+                            <span class="badge ticket-badge-{{ ticket.status }}">
+                                {{ ticket.status | replace('_', ' ') | title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if ticket.screenshot_data %}
+                            <i class="bi bi-image" style="color: var(--accent);"></i>
+                            {% else %}
+                            <span style="color: var(--text-muted);">—</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.8rem; white-space: nowrap;">
+                            {{ ticket.created_at.strftime('%m/%d/%Y %I:%M %p') }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4" style="color: var(--text-muted);">
+                            No tickets found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if pagination.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('manage_tickets', page=pagination.prev_num, status=current_status) }}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('manage_tickets', page=p, status=current_status) }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('manage_tickets', page=pagination.next_num, status=current_status) }}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

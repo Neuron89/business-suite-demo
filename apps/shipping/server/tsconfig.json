@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "..",
+    "baseUrl": ".",
+    "paths": {
+      "@shipping/shared": ["../packages/shared/src"],
+      "@shipping/shared/*": ["../packages/shared/src/*"]
+    }
+  },
+  "include": ["src/**/*", "../packages/shared/src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
