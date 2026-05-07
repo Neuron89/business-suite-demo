@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import dns from 'dns';
 import db from '../db/connection';
 import { GLOBAL_MOC_ROLES, ALL_AREA_ROLES, ALWAYS_NOTIFY_EMAILS, type Role } from '@moc/shared';
@@ -64,7 +64,7 @@ export function generateMagicLink(userId: number, mocId: number): string {
   const token = jwt.sign(
     { id: userId, redirect: `/moc/${mocId}` },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '7d' } as SignOptions
   );
   return `${API_URL}/api/auth/magic/${token}`;
 }

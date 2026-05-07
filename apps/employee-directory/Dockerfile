@@ -5,8 +5,8 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /build
 
-COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm ci
+COPY frontend/package.json ./
+RUN npm install
 
 COPY frontend/ ./
 RUN npx vite build
@@ -43,4 +43,4 @@ EXPOSE 5065
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -fsS http://localhost:5065/api/health || exit 1
 
-CMD ["python", "run.py"]
+CMD ["sh", "-c", "(python seed.py || echo '[edir] seed warning, continuing') && python run.py"]

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import db from '../db/connection';
 import { authenticate } from '../middleware/auth';
 
@@ -11,15 +11,17 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
 function generateTokens(user: { id: number; email: string; name: string; role: string }) {
+  const accessOpts = { expiresIn: JWT_EXPIRES_IN } as SignOptions;
+  const refreshOpts = { expiresIn: JWT_REFRESH_EXPIRES_IN } as SignOptions;
   const accessToken = jwt.sign(
     { id: user.id, email: user.email, name: user.name, role: user.role },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    accessOpts
   );
   const refreshToken = jwt.sign(
     { id: user.id },
     JWT_REFRESH_SECRET,
-    { expiresIn: JWT_REFRESH_EXPIRES_IN }
+    refreshOpts
   );
   return { accessToken, refreshToken };
 }

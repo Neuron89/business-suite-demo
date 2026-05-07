@@ -3,17 +3,20 @@
 /**
  * Microsoft OAuth callback page.
  *
- * Microsoft redirects the browser here with ?code=...&state=... after the
- * user signs in. We POST those to /api/auth/microsoft/exchange (the server
- * does the actual token swap with the client secret), then drop the
- * resulting portal session into the auth context.
+ * In production, Microsoft redirects the browser here with ?code=…&state=…
+ * after the user signs in. We POST those to /api/auth/microsoft/exchange
+ * (the server does the actual token swap with the client secret), then drop
+ * the resulting portal session into the auth context.
+ *
+ * In the demo there's no Microsoft button on the login page, so no one ever
+ * lands here — the route is preserved for reference.
  */
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { API_URL } from '@/lib/api';
 
-export default function MicrosoftCallbackPage() {
+function CallbackInner() {
   const router = useRouter();
   const params = useSearchParams();
   const { adoptSession } = useAuth();
@@ -54,23 +57,31 @@ export default function MicrosoftCallbackPage() {
   }, [params, router, adoptSession]);
 
   return (
+    <div className="card w-full max-w-md text-center">
+      {error ? (
+        <>
+          <h1 className="text-lg font-bold text-red-500 mb-2">Microsoft sign-in failed</h1>
+          <p className="text-sm text-theme-muted">{error}</p>
+          <a href="/login" className="mt-4 inline-block text-accent hover:underline">
+            Back to sign in
+          </a>
+        </>
+      ) : (
+        <>
+          <h1 className="text-lg font-bold text-theme-primary mb-2">Signing you in…</h1>
+          <p className="text-sm text-theme-muted">Talking to Microsoft. One sec.</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function MicrosoftCallbackPage() {
+  return (
     <div className="min-h-screen flex items-center justify-center bg-page px-4">
-      <div className="card w-full max-w-md text-center">
-        {error ? (
-          <>
-            <h1 className="text-lg font-bold text-red-500 mb-2">Microsoft sign-in failed</h1>
-            <p className="text-sm text-theme-muted">{error}</p>
-            <a href="/login" className="mt-4 inline-block text-accent hover:underline">
-              Back to sign in
-            </a>
-          </>
-        ) : (
-          <>
-            <h1 className="text-lg font-bold text-theme-primary mb-2">Signing you in…</h1>
-            <p className="text-sm text-theme-muted">Talking to Microsoft. One sec.</p>
-          </>
-        )}
-      </div>
+      <Suspense fallback={<div className="card w-full max-w-md text-center">Loading…</div>}>
+        <CallbackInner />
+      </Suspense>
     </div>
   );
 }

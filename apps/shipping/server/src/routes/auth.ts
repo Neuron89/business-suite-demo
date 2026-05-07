@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { loginSchema } from '@shipping/shared';
 import db from '../db/connection';
 import { validate } from '../middleware/validate';
@@ -23,8 +23,8 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     return;
   }
   const payload = { id: user.id, email: user.email, name: user.name, role: user.role };
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
-  const refresh = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' } as SignOptions);
+  const refresh = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' } as SignOptions);
   res.json({ token, refresh, user: payload });
 });
 
@@ -77,8 +77,8 @@ router.post('/sso-exchange', async (req, res) => {
     }
   }
   const payload = { id: user.id, email: user.email, name: user.name, role: user.role };
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
-  const refresh = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' } as SignOptions);
+  const refresh = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' } as SignOptions);
   res.json({ token, refresh, user: payload });
 });
 
@@ -91,7 +91,7 @@ router.post('/refresh', async (req, res) => {
   try {
     const payload = jwt.verify(refresh, JWT_REFRESH_SECRET) as any;
     const fresh = { id: payload.id, email: payload.email, name: payload.name, role: payload.role };
-    const token = jwt.sign(fresh, JWT_SECRET, { expiresIn: '15m' });
+    const token = jwt.sign(fresh, JWT_SECRET, { expiresIn: '15m' } as SignOptions);
     res.json({ token, user: fresh });
   } catch {
     res.status(401).json({ message: 'Invalid refresh token' });

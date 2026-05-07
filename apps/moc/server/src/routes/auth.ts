@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { loginSchema, refreshTokenSchema } from '@moc/shared';
 import db from '../db/connection';
 import { validate } from '../middleware/validate';
@@ -19,12 +19,12 @@ function generateTokens(user: { id: number; email: string; name: string; role: s
   const accessToken = jwt.sign(
     { id: user.id, email: user.email, name: user.name, role: user.role, secondary_roles: user.secondary_roles || [], admin_access: user.admin_access || false, is_approver: user.is_approver || false },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    { expiresIn: JWT_EXPIRES_IN } as SignOptions
   );
   const refreshToken = jwt.sign(
     { id: user.id },
     JWT_REFRESH_SECRET,
-    { expiresIn: JWT_REFRESH_EXPIRES_IN }
+    { expiresIn: JWT_REFRESH_EXPIRES_IN } as SignOptions
   );
   return { accessToken, refreshToken };
 }

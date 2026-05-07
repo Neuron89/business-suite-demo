@@ -184,7 +184,8 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     }
 
     const countQuery = query.clone().clearSelect().count('tickets.id as total').first();
-    const [{ total }] = await Promise.all([countQuery]);
+    const countRow = (await Promise.all([countQuery]))[0];
+    const total = countRow?.total ?? 0;
 
     const data = await query
       .orderBy('tickets.created_at', 'desc')
@@ -344,7 +345,7 @@ router.post('/:id/comments', authenticate, validate(addCommentSchema), async (re
     const internal = !!is_internal && ['it_admin', 'hr', 'manager'].includes(req.user!.role);
 
     const [newComment] = await db('ticket_comments').insert({
-      ticket_id: parseInt(req.params.id),
+      ticket_id: parseInt(String(req.params.id)),
       user_id: req.user!.id,
       comment: comment.trim(),
       is_internal: internal,
