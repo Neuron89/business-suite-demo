@@ -47,7 +47,7 @@ Shipping Command has its own `users` table in `shipping_db` — it does **not** 
 
 | Email | Role | Initial password |
 |---|---|---|
-| `rpereira@acme.demo` | shipping_head | `ShipCmd!change` |
-| `demo.it@acme.demo` | admin | `ShipCmd!change` |
+| `demo.manager@acme.demo` | shipping_head | `demo` |
+| `demo.it@acme.demo` | admin | `demo` |
 
 Add more users from **Settings → Users** (admin only).
