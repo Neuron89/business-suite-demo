@@ -42,6 +42,7 @@ const ALL_ACCESS: Record<ModuleKey, boolean> = {
   qc: true,
   shipping: true,
   complaint: true,
+  onboarding: true,
   iqms_chat: true,
   employee_db: true,
   sds: true,

@@ -1,4 +1,17 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:4020/api` : 'http://localhost:4020/api');
+// API base resolution: behind a reverse proxy (public hostname) the API is
+// reached same-origin at /api; in local dev it's on the server port directly.
+function resolveApiBase(): string {
+  const explicit = process.env.NEXT_PUBLIC_API_URL;
+  if (explicit && !explicit.startsWith('http://localhost')) return explicit;
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname, port } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return `${protocol}//${hostname}:4020/api`;
+    return `${protocol}//${hostname}${port ? `:${port}` : ''}/api`;
+  }
+  return 'http://localhost:4020/api';
+}
+
+const API_BASE = resolveApiBase();
 
 interface FetchOptions extends RequestInit {
   token?: string;

@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light mode */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e1;
+  --accent: #f59e0b;
+  --accent-hover: #d97706;
+  --accent-light: #fef3c7;
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #cbd5e1;
+  --sidebar-active: #f59e0b;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+}
+
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --border-color: #334155;
+  --border-hover: #475569;
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --accent-light: rgba(245, 158, 11, 0.15);
+  --sidebar-bg: #0b1120;
+  --sidebar-text: #94a3b8;
+  --sidebar-active: #f59e0b;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --input-bg: #1e293b;
+  --input-border: #475569;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --info: #60a5fa;
+}
+
+body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg font-semibold text-white transition-all duration-200;
+    background-color: var(--accent);
+  }
+  .btn-primary:hover {
+    background-color: var(--accent-hover);
+    @apply shadow-accent-glow;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded-lg font-semibold transition-all duration-200;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+  }
+  .btn-secondary:hover {
+    border-color: var(--border-hover);
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 rounded-lg font-semibold text-white transition-all duration-200;
+    background-color: var(--danger);
+  }
+  .btn-danger:hover {
+    @apply opacity-90;
+  }
+
+  .input-field {
+    @apply w-full px-3 py-2 rounded-lg border transition-all duration-200 outline-none;
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+  }
+  .input-field:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  }
+
+  .card {
+    @apply rounded-xl shadow-card transition-all duration-200;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+  }
+  .card:hover {
+    @apply shadow-card-hover;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+}

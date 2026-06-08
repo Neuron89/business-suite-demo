@@ -1,76 +1,83 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Acme Industries Business Suite — one-line installer
+# Acme Industries Business Suite — installer (self-hosted, behind Cloudflare)
 #
-# Usage:
-#   curl -fsSL https://raw.githubusercontent.com/Neuron89/business-suite-demo/main/install.sh | bash
+# Usage (on the home server, e.g. 192.168.1.193):
+#   git clone https://github.com/Neuron89/business-suite-demo.git
+#   cd business-suite-demo && bash install.sh
+#
+# First run copies .env.example -> .env and stops so you can fill it in
+# (DEMO_DOMAIN + CLOUDFLARE_TUNNEL_TOKEN). Re-run to build + start.
 #
 # Optional env:
-#   INSTALL_DIR  where to clone the repo (default: $HOME/business-suite-demo)
+#   INSTALL_DIR  where to clone/find the repo (default: this checkout)
 # =============================================================================
 set -euo pipefail
 
-INSTALL_DIR="${INSTALL_DIR:-$HOME/business-suite-demo}"
-REPO_URL="${REPO_URL:-https://github.com/Neuron89/business-suite-demo.git}"
+INSTALL_DIR="${INSTALL_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+cd "$INSTALL_DIR"
 
 bold()  { printf "\033[1m%s\033[0m\n" "$1"; }
 green() { printf "\033[32m%s\033[0m\n" "$1"; }
 red()   { printf "\033[31m%s\033[0m\n" "$1" >&2; }
 
-bold "[install] Acme Industries Business Suite — demo installer"
+bold "[install] Acme Industries Business Suite"
 
 # ---------------------------------------------------------------- preflight ---
-need() {
-  command -v "$1" >/dev/null 2>&1 || { red "[install] '$1' is required but not installed."; exit 1; }
-}
-need git
+need() { command -v "$1" >/dev/null 2>&1 || { red "[install] '$1' is required but not installed."; exit 1; }; }
 need docker
 docker compose version >/dev/null 2>&1 || { red "[install] docker compose v2 plugin is required."; exit 1; }
 
-# ----------------------------------------------------------------- clone ---
-if [ -d "$INSTALL_DIR/.git" ]; then
-  echo "[install] updating existing checkout at $INSTALL_DIR"
-  git -C "$INSTALL_DIR" pull --ff-only
+# ----------------------------------------------------------------- env file ---
+if [ ! -f .env ]; then
+  cp .env.example .env
+  red "[install] wrote .env from template. Edit it (DEMO_DOMAIN + CLOUDFLARE_TUNNEL_TOKEN), then re-run."
+  exit 0
+fi
+set -a; . ./.env; set +a
+
+# --------------------------------------------------------------- compose up ---
+PROFILE_ARGS=()
+if [ -n "${CLOUDFLARE_TUNNEL_TOKEN:-}" ]; then
+  PROFILE_ARGS=(--profile tunnel)
+  bold "[install] tunnel token present — bringing up WITH the Cloudflare tunnel"
 else
-  echo "[install] cloning into $INSTALL_DIR"
-  git clone --depth=1 "$REPO_URL" "$INSTALL_DIR"
+  red "[install] no CLOUDFLARE_TUNNEL_TOKEN set — local-only (reach via http://localhost:${HTTP_PORT:-8080} with a Host header)"
 fi
 
-cd "$INSTALL_DIR"
-
-# ------------------------------------------------------------- compose up ---
 bold "[install] building containers (first run takes ~5-10 minutes)"
-docker compose up -d --build
+docker compose "${PROFILE_ARGS[@]}" up -d --build
 
 # ----------------------------------------------------------------- wait ---
-echo -n "[install] waiting for portal to come up "
+echo -n "[install] waiting for the proxy "
 for i in $(seq 1 90); do
-  if curl -sf http://localhost:3070 >/dev/null 2>&1; then
-    echo " ready."
-    break
+  if curl -sf -H "Host: ${DEMO_DOMAIN:-demo.haydennester.com}" "http://localhost:${HTTP_PORT:-8080}/" >/dev/null 2>&1; then
+    echo " ready."; break
   fi
-  echo -n "."
-  sleep 2
+  echo -n "."; sleep 2
 done
 
 # ----------------------------------------------------------------- done ---
+D="${DEMO_DOMAIN:-demo.haydennester.com}"
 green "
 =================================================================
-  Acme Industries Business Suite — Demo
+  Acme Industries Business Suite — live
 =================================================================
-  Portal              http://localhost:3070
-  MOC                 http://localhost:3000
-  IT Request          http://localhost:3020
-  Shipping            http://localhost:3030
-  QC Lab              http://localhost:5000
-  IQMS Chat           http://localhost:5055
-  Employee Directory  http://localhost:5065
+  Portal              https://${D}
+  MOC                 https://moc.${D}
+  IT Request          https://it.${D}
+  Shipping            https://ship.${D}
+  QC Lab              https://qc.${D}
+  IQMS Chat           https://chat.${D}
+  Employee Directory  https://dir.${D}
+  Complaint Tracker   https://complaints.${D}
+  SDS Portal          https://sds.${D}
+  Onboarding          https://onboarding.${D}
 
-  Sign in: pick one of IT / HR / Manager / Employee from the
-  dropdown on the portal login page. Click any tile to land in
-  the corresponding app already authenticated.
+  Sign in: pick IT / HR / Manager / Employee on the portal login
+  page, then click any tile to land in that app authenticated.
 
-  Stop:   docker compose -f $INSTALL_DIR/docker-compose.yml down
-  Reset:  docker compose -f $INSTALL_DIR/docker-compose.yml down -v
+  Stop:        docker compose down
+  Reset data:  bash deploy/reset.sh
 =================================================================
 "

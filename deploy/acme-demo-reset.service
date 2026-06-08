@@ -1,0 +1,10 @@
+[Unit]
+Description=Acme Business Suite demo — nightly data reset
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Point this at wherever you cloned the repo on the home server:
+WorkingDirectory=/opt/business-suite-demo
+ExecStart=/usr/bin/env bash deploy/reset.sh

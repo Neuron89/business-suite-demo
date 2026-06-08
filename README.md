@@ -10,29 +10,40 @@ chat, Employee Directory) under a single sign-on.
 
 ---
 
-## One-line install
+## Install
+
+Self-hosted behind a Caddy reverse proxy + a Cloudflare tunnel — one subdomain
+per app under `${DEMO_DOMAIN}`. Requires **Docker** + **Docker Compose v2**.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Neuron89/business-suite-demo/main/install.sh | bash
+git clone https://github.com/Neuron89/business-suite-demo.git
+cd business-suite-demo
+bash install.sh        # writes .env, then stops
+nano .env              # set DEMO_DOMAIN + CLOUDFLARE_TUNNEL_TOKEN
+bash install.sh        # builds + starts (add the tunnel automatically)
 ```
 
-Requires **Docker** + **Docker Compose v2** + **git**. First build takes 5-10
-minutes; ~3-4 GB RAM and 4 GB disk.
+Full home-server walkthrough + Cloudflare DNS/tunnel setup: **[deploy/DEPLOY-HOME.md](deploy/DEPLOY-HOME.md)**.
 
-When it's done:
+When it's up (default domain shown):
 
-| App                | URL                   |
-|--------------------|-----------------------|
-| Portal             | http://localhost:3070 |
-| MOC                | http://localhost:3000 |
-| IT Request         | http://localhost:3020 |
-| Shipping           | http://localhost:3030 |
-| QC Lab             | http://localhost:5000 |
-| IQMS Chat          | http://localhost:5055 |
-| Employee Directory | http://localhost:5065 |
+| App                | URL                                  |
+|--------------------|--------------------------------------|
+| Portal             | https://demo.haydennester.com        |
+| MOC                | https://moc.demo.haydennester.com    |
+| IT Request         | https://it.demo.haydennester.com     |
+| Shipping           | https://ship.demo.haydennester.com   |
+| QC Lab             | https://qc.demo.haydennester.com     |
+| IQMS Chat          | https://chat.demo.haydennester.com   |
+| Employee Directory | https://dir.demo.haydennester.com    |
+| Complaint Tracker  | https://complaints.demo.haydennester.com |
+| SDS Portal         | https://sds.demo.haydennester.com    |
+| Onboarding         | https://onboarding.demo.haydennester.com |
+
+No DNS yet? Smoke-test locally: `curl -H 'Host: moc.demo.haydennester.com' http://localhost:8080/api/health`.
 
 Open the portal, pick one of the four roles below from the dropdown, and click
-any tile to land in that app already signed in.
+any tile to land in that app already signed in. Data resets nightly.
 
 ---
 

@@ -1,4 +1,17 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:4000/api` : 'http://localhost:4000/api');
+// API base resolution: behind a reverse proxy (public hostname) the API is
+// reached same-origin at /api; in local dev it's on the server port directly.
+function resolveApiBase(): string {
+  const explicit = process.env.NEXT_PUBLIC_API_URL;
+  if (explicit && !explicit.startsWith('http://localhost')) return explicit;
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname, port } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return `${protocol}//${hostname}:4000/api`;
+    return `${protocol}//${hostname}${port ? `:${port}` : ''}/api`;
+  }
+  return 'http://localhost:4000/api';
+}
+
+const API_BASE = resolveApiBase();
 
 interface FetchOptions extends RequestInit {
   token?: string;
@@ -220,8 +233,7 @@ export async function getPssrSignoffs(token: string, mocId: number) {
 }
 
 export async function exportPssrReport(token: string, mocId: number): Promise<Blob> {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:4000/api` : 'http://localhost:4000/api');
-  const res = await fetch(`${API_URL}/pssr/${mocId}/export`, {
+  const res = await fetch(`${API_BASE}/pssr/${mocId}/export`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Export failed');
@@ -267,8 +279,7 @@ export async function getDsrSignoffs(token: string, mocId: number) {
 }
 
 export async function exportDsrReport(token: string, mocId: number): Promise<Blob> {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:4000/api` : 'http://localhost:4000/api');
-  const res = await fetch(`${API_URL}/dsr/${mocId}/export`, {
+  const res = await fetch(`${API_BASE}/dsr/${mocId}/export`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Export failed');

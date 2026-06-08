@@ -10,6 +10,7 @@ export const MODULE_KEYS = [
   'qc',
   'sds',
   'complaint',
+  'onboarding',
   'iqms_chat',
   'employee_db',
   'shipping',
@@ -108,6 +109,14 @@ export const MODULES: ModuleDescriptor[] = [
     color: '#8b5cf6',
     glyph: 'S',
     urlEnvVar: 'SDS_PORTAL_URL',
+  },
+  {
+    key: 'onboarding',
+    label: 'Onboarding',
+    description: 'New-hire onboarding workflow across HR, manager, and IT.',
+    color: '#a855f7',
+    glyph: 'N',
+    urlEnvVar: 'ONBOARDING_URL',
   },
   {
     key: 'iqms_chat',

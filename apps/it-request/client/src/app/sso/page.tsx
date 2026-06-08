@@ -10,10 +10,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 // user visits localhost, the LAN IP, or a hostname behind nginx — no
 // .env.local required.
 function getApiBase(): string {
-  if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4020/api';
   const explicit = process.env.NEXT_PUBLIC_API_URL;
   if (explicit && !explicit.startsWith('http://localhost')) return explicit;
-  return `${window.location.protocol}//${window.location.hostname}:4020/api`;
+  if (typeof window === 'undefined') return 'http://localhost:4020/api';
+  const { protocol, hostname, port } = window.location;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return `${protocol}//${hostname}:4020/api`;
+  return `${protocol}//${hostname}${port ? `:${port}` : ''}/api`;
 }
 
 function SsoHandler() {
