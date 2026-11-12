@@ -4,7 +4,7 @@
 # Adjust QC_URL or rotation as needed; the rest auto-detects.
 
 export DISPLAY=:0
-QC_URL="${QC_URL:-http://192.168.168.47:5000/}"
+QC_URL="${QC_URL:-http://localhost:5000/}"
 ROTATION="${ROTATION:-normal}"
 
 # Wait for the QC Lab server to be reachable before launching the browser

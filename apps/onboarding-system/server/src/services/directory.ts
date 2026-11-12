@@ -81,7 +81,7 @@ function splitName(full: string): { first: string; last: string } {
 }
 
 /** Derive the work email from the manager's email_alias_preference if set,
- *  otherwise apply NYCOA's first-initial + lastname convention. Returns null
+ *  otherwise apply the company's first-initial + lastname convention. Returns null
  *  if we can't construct anything. */
 function deriveWorkEmail(details: any): string | null {
   const pref = (details?.email_alias_preference || '').toString().trim().toLowerCase();
@@ -93,7 +93,7 @@ function deriveWorkEmail(details: any): string | null {
   const base = first && last ? `${first[0]}${last.replace(/\s+/g, '')}` : (first || last);
   const local = base.toLowerCase().replace(/[^a-z0-9]/g, '');
   if (!local) return null;
-  return `${local}@nycoa.com`;
+  return `${local}@acme.demo`;
 }
 
 /**

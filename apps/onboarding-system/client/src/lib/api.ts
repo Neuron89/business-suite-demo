@@ -202,7 +202,7 @@ export async function getUsers(token: string) {
 
 export async function getManagers(token: string) {
   // Pulled from the Employee Tech Doc directory via a server-side proxy,
-  // so the autocomplete reflects the real "who works at NYCOA" list rather
+  // so the autocomplete reflects the real "who works here" list rather
   // than this app's local users table (which only has people who've SSO'd
   // in or been auto-provisioned).
   return fetchApi<{ id: number; name: string; email: string; title?: string | null; department?: string | null }[]>(
@@ -220,7 +220,7 @@ export async function getDepartments(token: string) {
   return fetchApi<any[]>('/departments', { token });
 }
 
-// Lookups (canonical NYCOA department + job-title catalog from Employee Tech Doc)
+// Lookups (canonical Acme department + job-title catalog from Employee Tech Doc)
 export interface LookupDepartment {
   id: number;
   name: string;

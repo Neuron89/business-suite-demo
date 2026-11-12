@@ -1,5 +1,5 @@
 /**
- * Canonical job-title catalog for NYCOA. Grouped by org-chart department so
+ * Canonical job-title catalog for Acme. Grouped by org-chart department so
  * the intake form can present a clean optgroup dropdown.
  *
  * Future use: a title here will eventually map to a default equipment +

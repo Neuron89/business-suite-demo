@@ -309,25 +309,25 @@ def build_user_list_xlsx() -> bytes:
 
 _ROOMS_INFRA: list[tuple[str, str, str, str | None]] = [
     ("395", "Large Conference Room", "Office", None),
-    ("352", "Production Supervisors", "Plant", "603-315-6110"),
+    ("352", "Production Supervisors", "Plant", "555-0110"),
     ("340", "Power House", "Plant", None),
     ("346", "QC Lab", "Plant", None),
     ("424", "Waste Area", "Plant", None),
-    ("302", "Security", "Security office, front building", "603-493-4928"),
+    ("302", "Security", "Security office, front building", "555-0111"),
     ("313", "Server Room", "Office", None),
-    ("343", "Shipping Lead (Les Magoon)", "Shipping", None),
+    ("343", "Shipping Lead", "Shipping", None),
     ("320", "Small Conference Room", "Office speaker phone", None),
 ]
 
 _OUTSIDE_SUPPORT: list[tuple[str, str, str]] = [
-    ("White Mountain", "Computer Support", "603-889-2210 / support@whitemtn.com"),
-    ("PHD Communications", "Phone Line Support", "603-666-5533 / support@phdcom.com"),
+    ("Acme IT Services", "Computer Support", "555-0100 / support@it-vendor.example"),
+    ("Acme Telecom", "Phone Line Support", "555-0101 / support@phone-vendor.example"),
 ]
 
 _FOOTER_LINES = [
-    "Main Phone #: 603-627-5150  |  Main Fax #: 603-627-5154",
-    "Customer Service Phone #: 1-800-851-2001  |  Customer Service Fax #: 603-627-4499",
-    "HR Fax #: 603-644-7658",
+    "Main Phone #: 555-0120  |  Main Fax #: 555-0121",
+    "Customer Service Phone #: 555-0122  |  Customer Service Fax #: 555-0123",
+    "HR Fax #: 555-0124",
 ]
 
 

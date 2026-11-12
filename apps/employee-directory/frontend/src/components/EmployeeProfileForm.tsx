@@ -219,7 +219,7 @@ function EmployeeProfileForm({
             type="tel"
             value={formState.phone}
             onChange={(event) => updateField("phone", event.target.value)}
-            placeholder="603-555-0100"
+            placeholder="555-0100"
           />
         </label>
         <label>
@@ -228,7 +228,7 @@ function EmployeeProfileForm({
             type="tel"
             value={formState.mobile_phone}
             onChange={(event) => updateField("mobile_phone", event.target.value)}
-            placeholder="603-555-0100"
+            placeholder="555-0100"
           />
         </label>
         <label>

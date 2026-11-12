@@ -12,7 +12,7 @@ const FIRST_NAMES = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Qu
 const LAST_NAMES = ['Walker', 'Reyes', 'Nguyen', 'Patel', 'O’Brien', 'Carter', 'Foster', 'Hughes', 'Bennett', 'Murphy', 'Singh', 'Cole'];
 const TITLES = ['Process Engineer', 'Production Operator', 'QC Technician', 'Maintenance Tech', 'Warehouse Lead', 'Lab Analyst'];
 const DEPARTMENTS = ['Production', 'Quality Control', 'Maintenance', 'Warehouse', 'Laboratory', 'EHS'];
-const OFFICES = ['Plant A – 1st floor', 'Plant A – 2nd floor', 'Acme Industries – main office', 'Bradford – plant floor'];
+const OFFICES = ['Plant A – 1st floor', 'Plant A – 2nd floor', 'Acme Industries – main office', 'Plant B – plant floor'];
 const NOTES = [
   'Replacing outgoing employee — needs same access.',
   'Cross-training across two lines, expects to float.',

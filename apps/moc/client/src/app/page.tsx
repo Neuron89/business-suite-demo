@@ -72,7 +72,7 @@ export default function PublicDashboard() {
             <h1 className="text-2xl font-extrabold text-white tracking-tight">
               MOC<span className="text-accent">System</span>
             </h1>
-            <p className="text-sm mt-1 text-[#94a3b8]">Public Dashboard — Nylon Manufacturing Facility</p>
+            <p className="text-sm mt-1 text-[#94a3b8]">Public Dashboard — Acme Industries</p>
           </div>
           <Link href="/login" className="btn-accent">Staff Login</Link>
         </div>

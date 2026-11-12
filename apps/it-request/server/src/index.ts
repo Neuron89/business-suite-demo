@@ -18,9 +18,6 @@ const PORT = parseInt(process.env.PORT || '4020');
 app.use(cors({
   origin: [
     'http://localhost:3020',
-    'http://192.168.168.193:3020',
-    'http://192.168.168.47:3020',
-    'http://192.168.1.114:3020',
     ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
   ],
   credentials: true,

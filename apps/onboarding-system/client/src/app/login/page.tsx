@@ -2,7 +2,7 @@
 
 /**
  * Onboarding sign-in is portal-only. The dev "select user" dropdown was
- * retired once the NYCOA Portal SSO bridge went live — sign in to the
+ * retired once the Acme Portal SSO bridge went live — sign in to the
  * portal first, then click the Onboarding tile.
  */
 import { useEffect, useState } from 'react';
@@ -42,7 +42,7 @@ export default function LoginPage() {
   // If the user landed here with no session (typical: tab left open past the
   // refresh-token's life, then revisited), auto-redirect to the portal home so
   // the SSO flow re-runs. Keeps the UX smooth instead of asking them to click
-  // "Open NYCOA Portal" themselves. Short delay so admins testing the page
+  // "Open Acme Portal" themselves. Short delay so admins testing the page
   // intentionally can read the message + cancel by navigating elsewhere.
   useEffect(() => {
     if (loading || user || !portalUrl) return;

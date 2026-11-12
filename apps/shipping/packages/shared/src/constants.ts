@@ -19,9 +19,9 @@ export const SHIPMENT_CATEGORIES = [
 export type ShipmentCategory = (typeof SHIPMENT_CATEGORIES)[number];
 
 export const ACME_EPLANT_ID = 2;
-export const ACME_MAIN_ADDRESS = '333 Sundial Avenue, Manchester, NH 03103';
+export const ACME_MAIN_ADDRESS = '100 Industrial Way, Springfield, USA';
 export const LOWELL_LOCATION_ID = 29713;
-export const LOWELL_ADDRESS = 'Lowell, MA';
+export const LOWELL_ADDRESS = 'Overflow Warehouse, Riverside, USA';
 
 export const WAREHOUSE_KEYS = ['acme_main', 'lowell'] as const;
 export type WarehouseKey = (typeof WAREHOUSE_KEYS)[number];

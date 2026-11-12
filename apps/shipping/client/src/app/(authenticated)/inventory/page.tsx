@@ -67,7 +67,7 @@ export default function InventoryPage() {
         {summary.map((s) => (
           <StatCard
             key={s.warehouse}
-            label={s.warehouse === 'acme_main' ? 'Acme Industries main' : s.warehouse === 'lowell' ? 'Lowell' : s.warehouse}
+            label={s.warehouse === 'acme_main' ? 'Acme Industries main' : s.warehouse === 'lowell' ? 'Overflow warehouse' : s.warehouse}
             value={fmtNumber(s.total_qty)}
             sub={`${fmtNumber(s.line_count)} parts`}
             tone={s.warehouse === 'lowell' ? 'navy' : 'amber'}
@@ -95,7 +95,7 @@ export default function InventoryPage() {
             >
               <option value="">All</option>
               <option value="acme_main">Acme Industries main</option>
-              <option value="lowell">Lowell</option>
+              <option value="lowell">Overflow warehouse</option>
             </select>
           </div>
           <button className="btn btn-primary text-xs" onClick={load}>

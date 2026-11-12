@@ -1,5 +1,5 @@
 /**
- * Integration endpoints — read-only API consumed by the NYCOA Portal to
+ * Integration endpoints — read-only API consumed by the Acme Portal to
  * surface IT request tickets on the unified home page.
  *
  * Auth: a shared service token in the `Authorization: Bearer <token>` header

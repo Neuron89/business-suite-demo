@@ -4,7 +4,7 @@ import type { AuthLoginResponse, HomeFeed, AdminOnboardingItem } from '@portal/s
  * API base URL resolution:
  * - In the browser, default to the same host the page came from on port 4070.
  *   That makes the portal Just Work whether you visit `localhost:3070` or
- *   the LAN IP `192.168.168.47:3070` without re-baking the bundle.
+ *   a LAN IP on port 3070 without re-baking the bundle.
  * - On the server (SSR / next build), fall back to NEXT_PUBLIC_API_URL or
  *   localhost — server code can always reach itself locally.
  */

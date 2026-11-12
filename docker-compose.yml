@@ -1,12 +1,17 @@
 # =============================================================================
-# Acme Industries Business Suite — Demo (self-hosted, public)
+# Acme Industries Business Suite - Demo
 #
-# Local:   docker compose up -d --build      (reach via Caddy on :${HTTP_PORT:-8080})
-# Public:  docker compose --profile tunnel up -d --build   (adds the Cloudflare tunnel)
+# Localhost:  docker compose --env-file local.env up -d --build
+#             -> http://localhost:8080 (apps on *.localhost:8080)
+# Public:     docker compose --profile tunnel up -d --build
+#             -> https://${DEMO_DOMAIN} via the Cloudflare tunnel (uses .env)
 #
 # Every app is reachable ONLY through the `caddy` reverse proxy, one subdomain
-# per app under ${DEMO_DOMAIN} (default demo.haydennester.com). No per-app host
-# ports are published, so this can run next to other apps without collisions.
+# per app under ${DEMO_DOMAIN}. No per-app host ports are published, so this can
+# run next to other services without port collisions.
+#
+# Browser-facing URLs are built as
+#   ${DEMO_SCHEME:-https}://<sub>.${DEMO_DOMAIN}${DEMO_PORT_SUFFIX:-}
 # =============================================================================
 
 services:
@@ -69,16 +74,16 @@ services:
       PORTAL_SSO_SECRET: ${PORTAL_SSO_SECRET:-demo-sso-shared-secret}
       DEMO_MODE: "true"
       # Browser-facing URLs for SSO redirects (public subdomains)
-      CLIENT_URL: https://${DEMO_DOMAIN:-demo.haydennester.com}
-      MOC_URL: https://moc.${DEMO_DOMAIN:-demo.haydennester.com}
-      IT_REQUEST_URL: https://it.${DEMO_DOMAIN:-demo.haydennester.com}
-      SHIPPING_URL: https://ship.${DEMO_DOMAIN:-demo.haydennester.com}
-      QC_LAB_URL: https://qc.${DEMO_DOMAIN:-demo.haydennester.com}
-      IQMS_CHAT_URL: https://chat.${DEMO_DOMAIN:-demo.haydennester.com}
-      EMPLOYEE_DB_URL: https://dir.${DEMO_DOMAIN:-demo.haydennester.com}
-      COMPLAINT_URL: https://complaints.${DEMO_DOMAIN:-demo.haydennester.com}
-      SDS_PORTAL_URL: https://sds.${DEMO_DOMAIN:-demo.haydennester.com}
-      ONBOARDING_URL: https://onboarding.${DEMO_DOMAIN:-demo.haydennester.com}
+      CLIENT_URL: ${DEMO_SCHEME:-https}://${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
+      MOC_URL: ${DEMO_SCHEME:-https}://moc.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
+      IT_REQUEST_URL: ${DEMO_SCHEME:-https}://it.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
+      SHIPPING_URL: ${DEMO_SCHEME:-https}://ship.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
+      QC_LAB_URL: ${DEMO_SCHEME:-https}://qc.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
+      IQMS_CHAT_URL: ${DEMO_SCHEME:-https}://chat.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
+      EMPLOYEE_DB_URL: ${DEMO_SCHEME:-https}://dir.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
+      COMPLAINT_URL: ${DEMO_SCHEME:-https}://complaints.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
+      SDS_PORTAL_URL: ${DEMO_SCHEME:-https}://sds.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
+      ONBOARDING_URL: ${DEMO_SCHEME:-https}://onboarding.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
       # Server-side URLs for task aggregation (internal docker network)
       MOC_API_BASE: http://moc:4000
       IT_REQUEST_API_BASE: http://it-request:4020
@@ -103,7 +108,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET_MOC:-demo-jwt-refresh-secret-moc}
       PORTAL_SSO_SECRET: ${PORTAL_SSO_SECRET:-demo-sso-shared-secret}
       INTEGRATION_API_KEY: demo-integration-key
-      CLIENT_URL: https://moc.${DEMO_DOMAIN:-demo.haydennester.com}
+      CLIENT_URL: ${DEMO_SCHEME:-https}://moc.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
       DEMO_MODE: "true"
       ALLOW_PASSWORD_LOGIN: "true"
 
@@ -125,7 +130,7 @@ services:
       JWT_SECRET: ${JWT_SECRET_IT:-demo-jwt-secret-it}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET_IT:-demo-jwt-refresh-secret-it}
       PORTAL_SSO_SECRET: ${PORTAL_SSO_SECRET:-demo-sso-shared-secret}
-      CLIENT_URL: https://it.${DEMO_DOMAIN:-demo.haydennester.com}
+      CLIENT_URL: ${DEMO_SCHEME:-https}://it.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
       DEMO_MODE: "true"
       ALLOW_PASSWORD_LOGIN: "true"
       ALLOW_TEST_LOGIN: "true"
@@ -148,7 +153,7 @@ services:
       JWT_SECRET: ${JWT_SECRET_SHIPPING:-demo-jwt-secret-shipping}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET_SHIPPING:-demo-jwt-refresh-secret-shipping}
       PORTAL_SSO_SECRET: ${PORTAL_SSO_SECRET:-demo-sso-shared-secret}
-      CLIENT_URL: https://ship.${DEMO_DOMAIN:-demo.haydennester.com}
+      CLIENT_URL: ${DEMO_SCHEME:-https}://ship.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
       DEMO_MODE: "true"
 
   # ----------------------------------------------------------------- qc-lab
@@ -204,7 +209,7 @@ services:
       JWT_SECRET: ${JWT_SECRET_COMPLAINT:-demo-jwt-secret-complaint}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET_COMPLAINT:-demo-jwt-refresh-secret-complaint}
       PORTAL_SSO_SECRET: ${PORTAL_SSO_SECRET:-demo-sso-shared-secret}
-      CLIENT_URL: https://complaints.${DEMO_DOMAIN:-demo.haydennester.com}
+      CLIENT_URL: ${DEMO_SCHEME:-https}://complaints.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
       DEMO_MODE: "true"
       ALLOW_PASSWORD_LOGIN: "true"
 
@@ -226,7 +231,7 @@ services:
       JWT_SECRET: ${JWT_SECRET_ONBOARDING:-demo-jwt-secret-onboarding}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET_ONBOARDING:-demo-jwt-refresh-secret-onboarding}
       PORTAL_SSO_SECRET: ${PORTAL_SSO_SECRET:-demo-sso-shared-secret}
-      CLIENT_URL: https://onboarding.${DEMO_DOMAIN:-demo.haydennester.com}
+      CLIENT_URL: ${DEMO_SCHEME:-https}://onboarding.${DEMO_DOMAIN:-demo.haydennester.com}${DEMO_PORT_SUFFIX:-}
       DIRECTORY_BASE_URL: http://employee-directory:5065
       DEMO_MODE: "true"
       ALLOW_PASSWORD_LOGIN: "true"

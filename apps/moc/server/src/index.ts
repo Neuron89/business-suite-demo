@@ -31,9 +31,6 @@ const PORT = parseInt(process.env.PORT || '4000');
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'http://192.168.168.193:3000',
-    'http://192.168.168.47:3000',
-    'http://192.168.1.114:3000',
     ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
     // Cross-system integration origins
     ...(process.env.QC_LAB_URL ? [process.env.QC_LAB_URL] : []),

@@ -184,7 +184,7 @@ router.post('/sso-exchange', async (req: Request, res: Response) => {
 // Login
 //
 // Password sign-in is disabled by default — the Onboarding app is meant to
-// be entered only via the NYCOA Portal SSO bridge. Set ALLOW_PASSWORD_LOGIN=true
+// be entered only via the Acme Portal SSO bridge. Set ALLOW_PASSWORD_LOGIN=true
 // in .env to re-enable the dev/admin fallback.
 router.post('/login', async (req: Request, res: Response) => {
   if ((process.env.ALLOW_PASSWORD_LOGIN || '').toLowerCase() !== 'true') {

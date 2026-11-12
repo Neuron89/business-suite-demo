@@ -1,53 +1,46 @@
 # Shipping Command
 
-Head-of-shipping operations dashboard for Acme Industries. Replaces `Freight Cost.xlsx`.
+Freight-cost and shipping operations dashboard that replaces a hand-maintained
+freight spreadsheet. Part of the
+[Acme Industries Business Suite demo](../../README.md).
 
 ## What it does
 
-- **Nightly IQMS sync** pulls shipments, BOLs, freight, and inventory into Postgres so he arrives to a pre-populated dashboard.
-- **Rate book** (carriers, lanes, effective dates) drives auto-cost defaults on new shipments.
-- **Weekly FSC** (fuel surcharge) fed from EIA diesel retail price.
-- **Routing distance/time** from Acme Industries + Lowell to each ship-to, cached (OSRM).
-- **Dashboards**: today's shipments, cost × customer/state/carrier, per-lb, MMR monthly, inventory (Acme Industries vs Lowell).
+- **Shipments**: daily shipment list with carrier, mode, weight and freight cost.
+- **Rate book**: carriers, lanes and effective dates drive default costs on new shipments.
+- **Fuel surcharge (FSC)**: weekly surcharge table.
+- **Routing**: distance and drive time from the plant and the overflow warehouse to each ship-to, cached.
+- **Dashboards**: cost by customer, state and carrier, cost per pound, monthly rollups.
+- **Inventory**: snapshot split between the main plant and the overflow warehouse.
+
+In production a nightly job pulls shipments, bills of lading, freight and
+inventory from the ERP's Oracle database (read-only). In the demo that sync is
+not run; the app reads the seeded `shipments` and related tables instead. The
+sync code is kept in `server/src/services/iqms-sync.ts` for reference.
 
 ## Stack
 
-- Next.js 15 + Express 4 + PostgreSQL (Knex) + OracleDB (read-only IQMS).
-- Ports: client :3030, server :4030.
-- DB: `shipping_db` (user `demo`).
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15 (port 3030) |
+| Backend | Express 4 + TypeScript (port 4030) |
+| Database | PostgreSQL (`shipping_db`) with Knex migrations |
+| ERP source | Oracle via `oracledb`, read-only (production only) |
 
-## Scope
+## Running
 
-- **Acme Industries only** (EPLANT_ID = 2). Lowell warehouse = `LOCATIONS.ID 29713`.
-- Head of shipping uses daily; read-only IQMS (no writes back).
-
-## Dev
+Built and started by the suite's `docker-compose.yml`. To run it on its own:
 
 ```bash
 npm install
-# create DB + run migrations
 createdb shipping_db
 npm run migrate
 npm run seed
 npm run dev
 ```
 
-## Env files
-
-- `server/.env` — DB + JWT + IQMS + EIA keys (see `.env.example`)
-- `client/.env.local` — `NEXT_PUBLIC_API_URL`
-
-## Nightly sync
-
-Systemd timer runs `npm run sync:iqms` at 05:00. See `deploy/shipping-command-sync.{service,timer}`.
-
 ## Access
 
-Shipping Command has its own `users` table in `shipping_db` — it does **not** share auth with MOC or any other app. Seeded accounts (change passwords on first login):
-
-| Email | Role | Initial password |
-|---|---|---|
-| `demo.manager@acme.demo` | shipping_head | `demo` |
-| `demo.it@acme.demo` | admin | `demo` |
-
-Add more users from **Settings → Users** (admin only).
+Shipping Command keeps its own `users` table and accepts portal SSO tokens. In
+the demo, users arrive from the portal already signed in; accounts are created
+on first SSO login.

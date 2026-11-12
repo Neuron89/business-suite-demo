@@ -86,7 +86,7 @@ ${preheader}
   <tr><td align="center">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
       <tr><td style="background:${accent};padding:18px 28px;">
-        <span style="color:#ffffff;font-size:16px;font-weight:800;letter-spacing:.02em;">NYCOA&nbsp;Onboarding</span>${statusPill}
+        <span style="color:#ffffff;font-size:16px;font-weight:800;letter-spacing:.02em;">Acme&nbsp;Onboarding</span>${statusPill}
       </td></tr>
       <tr><td style="padding:28px;">
         <h1 style="margin:0 0 10px;font-size:20px;line-height:1.3;color:${INK};font-weight:800;">${esc(o.title)}</h1>
@@ -96,7 +96,7 @@ ${preheader}
         ${ctaHtml}
       </td></tr>
       <tr><td style="padding:16px 28px;border-top:1px solid ${BORDER};background:#f8fafc;">
-        <p style="margin:0;font-size:12px;line-height:1.5;color:${MUTED};">Automated message from the NYCOA Onboarding system. Please don't reply directly to this email.</p>
+        <p style="margin:0;font-size:12px;line-height:1.5;color:${MUTED};">Automated message from the Acme Onboarding system. Please don't reply directly to this email.</p>
       </td></tr>
     </table>
   </td></tr>

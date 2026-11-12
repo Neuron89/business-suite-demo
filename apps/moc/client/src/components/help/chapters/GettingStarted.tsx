@@ -9,7 +9,7 @@ export default function GettingStarted() {
   return (
     <HelpChapter id="getting-started" number={1} title="Getting Started">
       <p className="text-theme-secondary leading-relaxed">
-        The MOC System helps you manage changes in the nylon manufacturing facility. Here&apos;s how to log in and navigate the application.
+        The MOC System helps you manage changes at the facility. Here&apos;s how to log in and navigate the application.
       </p>
 
       <StepByStep steps={[

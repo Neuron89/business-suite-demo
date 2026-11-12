@@ -1,5 +1,5 @@
 -- Create one database per Node app. The default POSTGRES_USER (demo) owns them all.
--- Python apps (qc-lab, iqms-chat, employee-directory) use SQLite, no DB needed here.
+-- Python apps (qc-lab, sds-portal, employee-directory) use SQLite; iqms-chat keeps no database.
 
 CREATE DATABASE portal_db;
 CREATE DATABASE moc_db;

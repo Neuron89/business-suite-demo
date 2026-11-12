@@ -32,7 +32,7 @@ RUN pip install -r requirements.txt
 
 COPY app/ ./app/
 COPY scripts/ ./scripts/
-COPY run.py manage.py ./
+COPY run.py manage.py seed.py ./
 
 COPY --from=frontend-builder /build/dist ./frontend/dist
 

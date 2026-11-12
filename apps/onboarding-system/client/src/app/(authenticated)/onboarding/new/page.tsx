@@ -16,7 +16,7 @@ import {
 
 const TITLES = ['Lab Technician A', 'Production Specialist', 'Compounding Operator A', 'Maintenance Foreman', 'Material Handler', 'Inside Sales'];
 const DEPARTMENTS = ['Production', 'Quality Control', 'Maintenance', 'Warehouse', 'Laboratory', 'EHS'];
-const OFFICES = ['NYCOA Office', 'NYCOA Factory – 1st floor', 'NYCOA Factory – 2nd floor', 'NYCOA Factory – 3rd floor', 'NYCOA Factory – 4th floor', 'NYCOA Factory – 5th floor'];
+const OFFICES = ['Acme Main Office', 'Acme Plant A – 1st floor', 'Acme Plant A – 2nd floor', 'Acme Plant A – 3rd floor', 'Acme Plant A – 4th floor', 'Acme Plant A – 5th floor'];
 const NOTES = [
   'Replacing outgoing employee — needs same access as previous.',
   'Cross-training across two lines, expects to float.',
@@ -225,7 +225,7 @@ export default function NewOnboardingPage() {
         needs_vpn: needsVpn,
         software_needed: splitList(softwareNeeded),
         shared_mailboxes: splitList(sharedMailboxes),
-        distribution_lists: Array.from(new Set(['all@nycoa.com', ...distributionLists])),
+        distribution_lists: Array.from(new Set(['all@acme.demo', ...distributionLists])),
         job_title_is_new: jobTitleIsNew || undefined,
         similar_to_employee_email: similarToEmployeeEmail || undefined,
       },
@@ -337,7 +337,7 @@ export default function NewOnboardingPage() {
               </select>
             </Field>
             <Field label="Office / building">
-              <input className="input-field" value={officeLocation} onChange={(e) => setOfficeLocation(e.target.value)} placeholder="e.g., NYCOA Office, or NYCOA Factory – 3rd floor" />
+              <input className="input-field" value={officeLocation} onChange={(e) => setOfficeLocation(e.target.value)} placeholder="e.g., Acme Main Office, or Acme Plant A – 3rd floor" />
             </Field>
           </Row>
           <Field label="Desired candidate profile (skills / experience HR should look for)">
@@ -361,7 +361,7 @@ export default function NewOnboardingPage() {
                 value={managerEmail}
                 onChange={(e) => handleManagerEmailChange(e.target.value)}
                 required
-                placeholder="manager@nycoa.com"
+                placeholder="manager@acme.demo"
                 autoComplete="off"
               />
               <datalist id="known-managers">
@@ -413,7 +413,7 @@ export default function NewOnboardingPage() {
           </Field>
           <Field label="Distribution lists">
             <p className="text-xs text-theme-muted mb-2">
-              Everyone is added to <strong>all@nycoa.com</strong> automatically. Select any additional lists below.
+              Everyone is added to <strong>all@acme.demo</strong> automatically. Select any additional lists below.
             </p>
             <div className="max-h-48 overflow-y-auto rounded-lg border border-theme p-2 space-y-1">
               {dlOptions.length === 0 && (
@@ -437,7 +437,7 @@ export default function NewOnboardingPage() {
             </div>
           </Field>
           <Field label="Copy access from existing employee">
-            <input type="email" className="input-field" value={similarToEmployeeEmail} onChange={(e) => setSimilarToEmployeeEmail(e.target.value)} placeholder="someone@nycoa.com (we'll mirror their groups & access)" />
+            <input type="email" className="input-field" value={similarToEmployeeEmail} onChange={(e) => setSimilarToEmployeeEmail(e.target.value)} placeholder="someone@acme.demo (we'll mirror their groups & access)" />
           </Field>
         </Section>
 

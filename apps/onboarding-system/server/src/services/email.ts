@@ -16,13 +16,13 @@ import { renderEmail, EmailRow } from './email-template';
 // above its dotenv.config(), so module-level process.env reads here would
 // capture undefined — same gotcha documented in directory.ts.
 function fromAddr(): string {
-  return process.env.SMTP_FROM || process.env.SMTP_USER || 'onboarding@nycoa.com';
+  return process.env.SMTP_FROM || process.env.SMTP_USER || 'onboarding@acme.demo';
 }
 function itNotify(): string {
-  return process.env.IT_NOTIFY_EMAIL || 'it@nycoa.com';
+  return process.env.IT_NOTIFY_EMAIL || 'it@acme.demo';
 }
 function hiringNotify(): string {
-  return process.env.HIRING_NOTIFY_EMAIL || 'hiring@nycoa.com';
+  return process.env.HIRING_NOTIFY_EMAIL || 'hiring@acme.demo';
 }
 // Test/preview mode: when EMAIL_REDIRECT_TO is set, ALL emails go only to that
 // address and the real recipients are shown in a "[→ ...]" subject prefix.
@@ -32,7 +32,7 @@ function redirectTo(): string {
   return (process.env.EMAIL_REDIRECT_TO || '').trim();
 }
 function onboardingBaseUrl(): string {
-  return (process.env.CLIENT_URL || 'https://onboarding.nycoa.io').replace(/\/$/, '');
+  return (process.env.CLIENT_URL || 'https://onboarding.acme.demo').replace(/\/$/, '');
 }
 
 // DEMO-safe transport. In the sanitized demo suite we never want to open a
@@ -325,7 +325,7 @@ export async function notifyPing(ticket: OnboardingTicket, toRole: string, messa
   } else if (toRole === 'hr') {
     to.push(hiringNotify());
   } else if (toRole === 'ehs') {
-    to.push(process.env.EHS_NOTIFY_EMAIL || 'ehs@nycoa.com');
+    to.push(process.env.EHS_NOTIFY_EMAIL || 'ehs@acme.demo');
   }
   const num = ticket.request_number || `#${ticket.id}`;
   const subject = `[Onboarding] Action needed (ping) — ${num}`;

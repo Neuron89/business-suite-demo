@@ -41,7 +41,7 @@ router.get('/job-titles', async (req: Request, res: Response) => {
 });
 
 router.get('/distribution-groups', async (_req: Request, res: Response) => {
-  const companyId = process.env.ETD_NYCOA_COMPANY_ID;
+  const companyId = process.env.ETD_COMPANY_ID;
   const suffix = companyId ? `?company_id=${encodeURIComponent(companyId)}` : '';
   await forward(`/api/distribution-groups/${suffix}`, res);
 });

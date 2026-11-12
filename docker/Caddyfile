@@ -1,14 +1,14 @@
 # =============================================================================
 # Acme Business Suite — reverse proxy
 #
-# One subdomain per app under {$DEMO_DOMAIN} (default demo.haydennester.com).
-# Cloudflare terminates TLS and forwards plain HTTP to this proxy, so auto_https
-# is off. Node apps run the Next client + Express API in one container on two
+# One subdomain per app under {$DEMO_DOMAIN}. TLS is terminated upstream (the
+# Cloudflare tunnel) or not used at all (localhost mode), so auto_https is off.
+# Node apps run the Next client + Express API in one container on two
 # ports: /api/* -> server port, everything else -> client port. Flask apps serve
 # everything on a single port.
 #
-# Local smoke test (no DNS needed):
-#   curl -H 'Host: moc.demo.haydennester.com' http://localhost:8080/api/health
+# Smoke test without DNS (routing is by Host header):
+#   curl -H 'Host: moc.<DEMO_DOMAIN>' http://localhost:8080/api/health
 # =============================================================================
 
 {

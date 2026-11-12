@@ -2,7 +2,7 @@
 
 /**
  * "[← Portal]" chip — sits at the top of the sidebar (desktop) or in the
- * mobile top bar. Clicking returns the user to the NYCOA Portal.
+ * mobile top bar. Clicking returns the user to the Acme Portal.
  *
  * The portal URL comes from NEXT_PUBLIC_PORTAL_URL. If unset (local dev
  * with no portal running) the component renders nothing, so we don't
@@ -43,7 +43,7 @@ export default function PortalBackLink({ compact = false, href, className = '' }
     return (
       <a
         href={portalUrl}
-        title="Back to NYCOA Portal"
+        title="Back to Acme Portal"
         className={`inline-flex items-center justify-center w-9 h-9 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition ${className}`}
       >
         {Icon}
@@ -54,7 +54,7 @@ export default function PortalBackLink({ compact = false, href, className = '' }
   return (
     <a
       href={portalUrl}
-      title="Back to NYCOA Portal"
+      title="Back to Acme Portal"
       className={`group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider text-white/70 hover:text-white border border-white/10 hover:border-white/25 bg-white/[0.04] hover:bg-white/[0.08] transition ${className}`}
     >
       <span className="transition-transform group-hover:-translate-x-0.5">{Icon}</span>

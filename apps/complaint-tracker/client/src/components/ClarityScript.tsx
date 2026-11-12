@@ -4,7 +4,7 @@
  * Microsoft Clarity loader.
  *
  * Heatmaps, click maps, session recordings — free and tenant-scoped to
- * the NYCOA M365 org. The project ID comes from clarity.microsoft.com
+ * the company Microsoft 365 org. The project ID comes from clarity.microsoft.com
  * after creating a project. Wire it via NEXT_PUBLIC_CLARITY_PROJECT_ID
  * in the app's .env.local (or .env in production).
  *
