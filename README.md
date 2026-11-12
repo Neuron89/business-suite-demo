@@ -12,6 +12,20 @@ Active Directory) is stubbed or switched off. It never connects to a real
 company system, so it can be run on a laptop or published on a personal domain
 for anyone to explore.
 
+## Screenshots
+
+Captured from the suite running locally with its seeded demo data, signed in
+as the IT demo user.
+
+| | |
+|---|---|
+| ![Portal home with app tiles](docs/screenshots/portal-home.png)<br/>**Portal** — app tiles, announcements, single sign-on | ![Portal role picker](docs/screenshots/portal-login.png)<br/>**Portal login** — demo role picker |
+| ![Management of Change request list](docs/screenshots/moc.png)<br/>**Management of Change** — change requests by status | ![IT Request dashboard](docs/screenshots/it-request.png)<br/>**IT Request** — ticket dashboard |
+| ![Onboarding requisitions](docs/screenshots/onboarding.png)<br/>**Onboarding** — new-hire requisition pipeline | ![Complaint Tracker dashboard](docs/screenshots/complaint-tracker.png)<br/>**Complaint Tracker** — dashboard |
+| ![Shipping Command dashboard](docs/screenshots/shipping.png)<br/>**Shipping Command** — freight-cost dashboard | ![QC Lab dashboard](docs/screenshots/qc-lab.png)<br/>**QC Lab** — lots and test status |
+| ![Employee Directory user list](docs/screenshots/employee-directory.png)<br/>**Employee Directory** — employees and assets | ![SDS Portal product list](docs/screenshots/sds-portal.png)<br/>**SDS Portal** — safety data sheet library |
+| ![IQMS Chat](docs/screenshots/iqms-chat.png)<br/>**IQMS Chat** — natural-language ERP questions (canned answers in the demo) | |
+
 ## The apps
 
 | App | What it does | Stack |
@@ -168,6 +182,7 @@ business-suite-demo/
 │   ├── SELF-HOSTING.md      Cloudflare DNS/tunnel walkthrough
 │   ├── reset.sh             wipe volumes and re-seed
 │   └── acme-demo-reset.*    systemd service + timer for a nightly reset
+├── docs/screenshots/        README images
 └── apps/
     ├── portal/              Next.js + Express
     ├── moc/                 Next.js + Express

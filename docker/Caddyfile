@@ -19,39 +19,71 @@
 # ---- Portal (apex) ----------------------------------------------------------
 http://{$DEMO_DOMAIN:demo.haydennester.com} {
 	@api path /api/*
-	handle @api { reverse_proxy portal:4070 }
-	handle { reverse_proxy portal:3070 }
+	handle @api {
+		reverse_proxy portal:4070
+	}
+	handle {
+		reverse_proxy portal:3070
+	}
 }
 
 # ---- Node apps (Next client + Express API) ----------------------------------
 http://moc.{$DEMO_DOMAIN:demo.haydennester.com} {
 	@api path /api/*
-	handle @api { reverse_proxy moc:4000 }
-	handle { reverse_proxy moc:3000 }
+	handle @api {
+		reverse_proxy moc:4000
+	}
+	handle {
+		reverse_proxy moc:3000
+	}
 }
 http://it.{$DEMO_DOMAIN:demo.haydennester.com} {
 	@api path /api/*
-	handle @api { reverse_proxy it-request:4020 }
-	handle { reverse_proxy it-request:3020 }
+	handle @api {
+		reverse_proxy it-request:4020
+	}
+	handle {
+		reverse_proxy it-request:3020
+	}
 }
 http://ship.{$DEMO_DOMAIN:demo.haydennester.com} {
 	@api path /api/*
-	handle @api { reverse_proxy shipping:4030 }
-	handle { reverse_proxy shipping:3030 }
+	handle @api {
+		reverse_proxy shipping:4030
+	}
+	handle {
+		reverse_proxy shipping:3030
+	}
 }
 http://complaints.{$DEMO_DOMAIN:demo.haydennester.com} {
 	@api path /api/*
-	handle @api { reverse_proxy complaint-tracker:4010 }
-	handle { reverse_proxy complaint-tracker:3010 }
+	handle @api {
+		reverse_proxy complaint-tracker:4010
+	}
+	handle {
+		reverse_proxy complaint-tracker:3010
+	}
 }
 http://onboarding.{$DEMO_DOMAIN:demo.haydennester.com} {
 	@api path /api/*
-	handle @api { reverse_proxy onboarding-system:4080 }
-	handle { reverse_proxy onboarding-system:3080 }
+	handle @api {
+		reverse_proxy onboarding-system:4080
+	}
+	handle {
+		reverse_proxy onboarding-system:3080
+	}
 }
 
 # ---- Flask apps (single port) -----------------------------------------------
-http://qc.{$DEMO_DOMAIN:demo.haydennester.com}   { reverse_proxy qc-lab:5000 }
-http://chat.{$DEMO_DOMAIN:demo.haydennester.com} { reverse_proxy iqms-chat:5055 }
-http://dir.{$DEMO_DOMAIN:demo.haydennester.com}  { reverse_proxy employee-directory:5065 }
-http://sds.{$DEMO_DOMAIN:demo.haydennester.com}  { reverse_proxy sds-portal:5001 }
+http://qc.{$DEMO_DOMAIN:demo.haydennester.com} {
+	reverse_proxy qc-lab:5000
+}
+http://chat.{$DEMO_DOMAIN:demo.haydennester.com} {
+	reverse_proxy iqms-chat:5055
+}
+http://dir.{$DEMO_DOMAIN:demo.haydennester.com} {
+	reverse_proxy employee-directory:5065
+}
+http://sds.{$DEMO_DOMAIN:demo.haydennester.com} {
+	reverse_proxy sds-portal:5001
+}

@@ -63,12 +63,19 @@ docker compose ${COMPOSE_ARGS[@]+"${COMPOSE_ARGS[@]}"} up -d --build
 # ----------------------------------------------------------------- wait ---
 D="${DEMO_DOMAIN:-demo.haydennester.com}"
 echo -n "[install] waiting for the proxy "
+READY=0
 for i in $(seq 1 90); do
   if curl -sf -H "Host: ${D}" "http://localhost:${HTTP_PORT:-8080}/" >/dev/null 2>&1; then
-    echo " ready."; break
+    READY=1; echo " ready."; break
   fi
   echo -n "."; sleep 2
 done
+if [ "$READY" != 1 ]; then
+  echo
+  red "[install] the proxy did not answer on port ${HTTP_PORT:-8080} within 3 minutes."
+  red "[install] check: docker compose ${COMPOSE_ARGS[*]:-} ps   and   docker compose ${COMPOSE_ARGS[*]:-} logs caddy portal"
+  exit 1
+fi
 
 # ----------------------------------------------------------------- done ---
 BASE="${DEMO_SCHEME:-https}://"

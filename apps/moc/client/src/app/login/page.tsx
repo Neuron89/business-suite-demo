@@ -17,7 +17,13 @@ function resolvePortalUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_PORTAL_URL;
   if (explicit) return explicit.replace(/\/$/, '');
   if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:3070`;
+    const { protocol, hostname, port } = window.location;
+    const isDirect = hostname === 'localhost' || /^[0-9.]+$/.test(hostname);
+    // Direct dev access: the portal client listens on :3070 of the same host.
+    if (isDirect) return `${protocol}//${hostname}:3070`;
+    // Behind the reverse proxy each app is a subdomain of the portal's host.
+    const parent = hostname.split('.').slice(1).join('.');
+    return `${protocol}//${parent}${port ? `:${port}` : ''}`;
   }
   return 'http://localhost:3070';
 }

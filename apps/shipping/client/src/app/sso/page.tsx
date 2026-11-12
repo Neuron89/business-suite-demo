@@ -44,7 +44,9 @@ function SsoHandler() {
         if (!resp.ok) throw new Error(body?.message || 'Sign-in failed');
         localStorage.setItem('shipping_token', body.token);
         localStorage.setItem('shipping_refresh', body.refresh);
-        router.replace(next);
+        // Full navigation (not router.replace) so the auth provider re-reads
+        // the session that was just stored instead of bouncing to /login.
+        window.location.replace(next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
       } catch (err) {
         setError((err as Error).message);
       }

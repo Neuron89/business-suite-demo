@@ -7,7 +7,17 @@ from flask import current_app
 from ..config import Config
 from ..database import db
 from ..models import Company
-from scripts.sync_local_ad_groups import SyncConfig, run_sync  # type: ignore[import]
+try:
+    from scripts.sync_local_ad_groups import SyncConfig, run_sync  # type: ignore[import]
+except ImportError:
+    # The Active Directory sync script is not shipped with the demo. Keep the
+    # app importable and report a clear error if a sync is ever requested.
+    class SyncConfig:  # type: ignore[no-redef]
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+    def run_sync(*_args, **_kwargs):  # type: ignore[no-redef]
+        raise RuntimeError("Local AD sync is not available in the demo build.")
 
 
 class LocalADSyncError(RuntimeError):

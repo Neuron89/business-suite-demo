@@ -213,19 +213,23 @@ def sso():
         return redirect(url_for("login"))
 
     users = _load_users()
-    if "admin" not in users:
-        log_error("admin user missing from users.json — cannot complete SSO")
-        flash("Admin account not configured.", "error")
+    # Prefer the account matching the portal user's email; fall back to the
+    # shared `admin` account used by single-user installs.
+    sso_email = (claims.get("email") or "").lower()
+    username = sso_email if sso_email in users else "admin"
+    if username not in users:
+        log_error(f"no account for {sso_email or '?'} and no admin user in users.json — cannot complete SSO")
+        flash("No IQMS Chat account is configured for this user.", "error")
         return redirect(url_for("login"))
 
-    admin_user = users["admin"]
-    session["username"] = "admin"
+    admin_user = users[username]
+    session["username"] = username
     session["display_name"] = claims.get("full_name") or admin_user.get("display_name", "admin")
     session["is_admin"] = bool(admin_user.get("is_admin"))
     session["chat_id"] = str(uuid.uuid4())
     session["eplant_id"] = "2"  # Default to Acme
     session["sso_email"] = claims.get("email", "")
-    log_info(f"Portal SSO sign-in for {claims.get('email','?')} → admin")
+    log_info(f"Portal SSO sign-in for {claims.get('email','?')} → {username}")
 
     if not next_path.startswith("/"):
         next_path = "/"

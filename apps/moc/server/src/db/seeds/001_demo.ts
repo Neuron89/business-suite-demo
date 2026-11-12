@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 
 /**
  * MOC demo seed — 4 demo users + 3 sample MOC requests in different states.
- * Idempotent: only inserts when the users table is empty.
+ * Idempotent: only inserts when there are no MOC requests yet.
  */
 const DEMO_USERS = [
   { email: 'demo.it@acme.demo',       name: 'Ivy Tanaka',     role: 'super_admin', admin_access: true,  is_approver: true  },
@@ -73,18 +73,26 @@ const MOCS: MocSeed[] = [
 ];
 
 export async function seed(knex: Knex): Promise<void> {
-  const userCount = await knex('users').count<{ count: string }[]>('id as count');
-  if (Number(userCount[0]?.count ?? 0) > 0) {
-    console.log('[moc seed] users table not empty, skipping demo seed');
+  // The migrations already create some of the demo users, so the users table
+  // is never empty on a fresh database. Key idempotency on the MOC table.
+  const mocCount = await knex('moc_requests').count<{ count: string }[]>('id as count');
+  if (Number(mocCount[0]?.count ?? 0) > 0) {
+    console.log('[moc seed] MOC requests already present, skipping demo seed');
     return;
   }
 
   const hash = await bcrypt.hash('demo', 10);
 
-  // Insert demo users
-  const userRows = await knex('users')
-    .insert(
-      DEMO_USERS.map((u) => ({
+  // Insert any demo users the migrations did not create
+  const userIdByEmail = new Map<string, number>();
+  for (const u of DEMO_USERS) {
+    const existing = await knex('users').where({ email: u.email }).first();
+    if (existing) {
+      userIdByEmail.set(u.email, existing.id);
+      continue;
+    }
+    const [row] = await knex('users')
+      .insert({
         email: u.email,
         name: u.name,
         role: u.role,
@@ -92,22 +100,24 @@ export async function seed(knex: Knex): Promise<void> {
         admin_access: u.admin_access,
         is_approver: u.is_approver,
         is_active: true,
-      }))
-    )
-    .returning(['id', 'email']);
+      })
+      .returning(['id']);
+    userIdByEmail.set(u.email, row.id);
+  }
 
-  const userIdByEmail = new Map(userRows.map((r: any) => [r.email, r.id]));
-
+  const year = new Date().getFullYear();
+  let seq = 0;
   for (const m of MOCS) {
     const createdBy = userIdByEmail.get(m.created_by_email);
     if (!createdBy) continue;
+    seq += 1;
     await knex('moc_requests').insert({
+      moc_number: `MOC-${year}-${String(seq).padStart(3, '0')}-L0`,
       title: m.title,
       description: m.description,
       change_type: m.change_type,
       status: m.status,
       affected_areas: m.affected_areas,
-      affected_chemicals: m.affected_chemicals,
       justification: m.justification,
       proposed_start_date: m.proposed_start_date,
       proposed_end_date: m.proposed_end_date,
@@ -117,5 +127,5 @@ export async function seed(knex: Knex): Promise<void> {
     });
   }
 
-  console.log(`[moc seed] inserted ${DEMO_USERS.length} users + ${MOCS.length} MOC requests`);
+  console.log(`[moc seed] ensured ${DEMO_USERS.length} users, inserted ${MOCS.length} MOC requests`);
 }

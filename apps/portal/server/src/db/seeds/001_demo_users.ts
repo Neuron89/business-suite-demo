@@ -52,9 +52,9 @@ export async function seed(knex: Knex): Promise<void> {
       await knex('announcements').insert({
         title: a.title,
         body: a.body,
-        severity: a.severity,
         author_email: 'demo.it@acme.demo',
-        published_at: knex.fn.now(),
+        author_name: 'Ivy Tanaka',
+        pinned: a.severity === 'warning',
       });
     }
   }

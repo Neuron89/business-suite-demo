@@ -10,48 +10,49 @@ os.environ.setdefault("DATABASE_URL", "sqlite:////app/data/employee_assets.db")
 
 from app import create_app  # noqa: E402
 from app.models import (  # noqa: E402
-    db, Company, Employee, EmployeeStatus, Asset, AssetStatus,
-    Subscription, SubscriptionStatus,
+    Company, Employee, EmployeeStatus, HardwareAsset, AssetStatus,
+    SoftwareSubscription, SubscriptionStatus,
 )
+from app.database import db  # noqa: E402
 
 
 DEMO_USERS = [
     {
         "email": "demo.it@acme.demo", "first": "Ivy", "last": "Tanaka",
         "title": "IT Administrator", "dept": "Information Technology",
-        "portal_role": "admin", "company": "Acme — Plant A",
+        "portal_role": "admin", "company": "Acme",
     },
     {
         "email": "demo.hr@acme.demo", "first": "Hana", "last": "Reyes",
         "title": "HR Lead", "dept": "Human Resources",
-        "portal_role": "admin", "company": "Acme — Plant A",
+        "portal_role": "admin", "company": "Acme",
     },
     {
         "email": "demo.manager@acme.demo", "first": "Marco", "last": "Goldberg",
         "title": "Plant Manager", "dept": "Operations",
-        "portal_role": "manager", "company": "Acme — Plant A",
+        "portal_role": "manager", "company": "Acme",
     },
     {
         "email": "demo.employee@acme.demo", "first": "Eli", "last": "Park",
         "title": "Operator", "dept": "Production",
-        "portal_role": "employee", "company": "Acme — Plant A",
+        "portal_role": "employee", "company": "Acme",
         "manager_email": "demo.manager@acme.demo",
     },
 ]
 
 EXTRA_EMPLOYEES = [
-    ("Avery",   "Chen",      "Process Engineer",   "Engineering",          "Acme — Plant A"),
-    ("Bailey",  "Mendez",    "Quality Tech",       "QC Lab",               "Acme — Plant A"),
-    ("Cameron", "Iqbal",     "Maintenance Lead",   "Maintenance",          "Acme — Plant A"),
-    ("Dylan",   "Okonkwo",   "Production Operator", "Production",          "Acme — Plant A"),
-    ("Elena",   "Brewer",    "Lab Technician",     "QC Lab",               "Acme — Plant A"),
-    ("Finn",    "Saito",     "Logistics Coordinator", "Logistics",         "Acme — Plant A"),
-    ("Greta",   "Vasquez",   "Safety Officer",     "EHS",                  "Acme — Plant A"),
-    ("Hassan",  "Lewis",     "Production Supervisor", "Production",        "Acme — Plant B"),
-    ("Iris",    "Donovan",   "QC Manager",         "QC Lab",               "Acme — Plant B"),
-    ("Joaquin", "Petersen",  "Maintenance Tech",   "Maintenance",          "Acme — Plant B"),
-    ("Kira",    "Nakamura",  "Process Operator",   "Production",           "Acme — Plant B"),
-    ("Luca",    "Brennan",   "EHS Coordinator",    "EHS",                  "Acme — Plant B"),
+    ("Avery",   "Chen",      "Process Engineer",   "Engineering",          "Acme"),
+    ("Bailey",  "Mendez",    "Quality Tech",       "QC Lab",               "Acme"),
+    ("Cameron", "Iqbal",     "Maintenance Lead",   "Maintenance",          "Acme"),
+    ("Dylan",   "Okonkwo",   "Production Operator", "Production",          "Acme"),
+    ("Elena",   "Brewer",    "Lab Technician",     "QC Lab",               "Acme"),
+    ("Finn",    "Saito",     "Logistics Coordinator", "Logistics",         "Acme"),
+    ("Greta",   "Vasquez",   "Safety Officer",     "EHS",                  "Acme"),
+    ("Hassan",  "Lewis",     "Production Supervisor", "Production",        "Plant A"),
+    ("Iris",    "Donovan",   "QC Manager",         "QC Lab",               "Plant A"),
+    ("Joaquin", "Petersen",  "Maintenance Tech",   "Maintenance",          "Plant A"),
+    ("Kira",    "Nakamura",  "Process Operator",   "Production",           "Plant A"),
+    ("Luca",    "Brennan",   "EHS Coordinator",    "EHS",                  "Plant A"),
 ]
 
 ASSETS = [
@@ -81,10 +82,10 @@ def main():
             print(f"[edir seed] {Employee.query.count()} employees exist, skipping.")
             return
 
-        # Companies (seed_companies_and_settings creates the legacy ones,
-        # so add ours and ignore conflicts on name)
+        # Companies: create_app() seeds "Acme" (the UI's default company)
+        # and "Plant A"; reuse those so the default view shows the demo data.
         company_by_name = {c.name: c for c in Company.query.all()}
-        for cname in ("Acme — Plant A", "Acme — Plant B"):
+        for cname in ("Acme", "Plant A"):
             if cname not in company_by_name:
                 co = Company(name=cname)
                 db.session.add(co)
@@ -134,27 +135,27 @@ def main():
             if assigned_email:
                 emp = Employee.query.filter_by(email=assigned_email).first()
                 assigned_to = emp.id if emp else None
-            db.session.add(Asset(
+            db.session.add(HardwareAsset(
                 asset_tag=asset_tag,
-                category=kind,
+                asset_type=kind,
                 model=model,
                 status=status,
-                assigned_to_id=assigned_to,
+                employee_id=assigned_to,
             ))
 
         # Subscriptions
         for name, vendor, seats, status in SUBSCRIPTIONS:
-            db.session.add(Subscription(
+            db.session.add(SoftwareSubscription(
                 name=name,
                 vendor=vendor,
-                seat_count=seats,
+                notes=f"{seats} seats",
                 status=status,
             ))
 
         db.session.commit()
         print(f"[edir seed] inserted {Employee.query.count()} employees, "
-              f"{Asset.query.count()} assets, "
-              f"{Subscription.query.count()} subscriptions")
+              f"{HardwareAsset.query.count()} assets, "
+              f"{SoftwareSubscription.query.count()} subscriptions")
 
 
 if __name__ == "__main__":

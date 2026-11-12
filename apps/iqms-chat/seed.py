@@ -16,22 +16,26 @@ def _hash(password: str, salt: str = "") -> str:
 DEMO_USERS = {
     "demo.it@acme.demo": {
         "display_name": "Ivy Tanaka",
-        "password_hash": _hash("demo"),
+        "hash": _hash("demo"),
+        "salt": "",
         "is_admin": True,
     },
     "demo.hr@acme.demo": {
         "display_name": "Hana Reyes",
-        "password_hash": _hash("demo"),
+        "hash": _hash("demo"),
+        "salt": "",
         "is_admin": True,
     },
     "demo.manager@acme.demo": {
         "display_name": "Marco Goldberg",
-        "password_hash": _hash("demo"),
+        "hash": _hash("demo"),
+        "salt": "",
         "is_admin": False,
     },
     "demo.employee@acme.demo": {
         "display_name": "Eli Park",
-        "password_hash": _hash("demo"),
+        "hash": _hash("demo"),
+        "salt": "",
         "is_admin": False,
     },
 }
